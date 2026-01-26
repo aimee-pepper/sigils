@@ -32,13 +32,13 @@
 - Only 50% of eligible vertices receive dots (seeded random selection)
 
 ## Arc Decorative Dots
-- Compare arc length to the arc's ring circumference (2πr)
+- Compare arc length to the arc's outer ring circumference (2πr)
 - Arc ≥ 1/4 circumference → 1 dot
 - Arc ≥ 1/3 circumference → 2 dots
 - Arc ≥ 1/2 circumference → 3 dots
 - Maximum 3 dots per arc
 - Dots spaced evenly with slight random jitter
-- No overlapping dots (minimum 8px apart)
+- No overlapping dots (minimum 2 dot size diameter apart)
 
 ## Start Marker
 - Hollow circle with center dot
@@ -48,6 +48,7 @@
 - Perpendicular bar at the point with highest letter value
 - Bar is perpendicular to the incoming line direction
 - Bar length adjusts (can shorten OR extend) to avoid colliding with other lines
+- Mark whether it collides based on the width of the terminal bar and what it hits rather than just the line end point
 - Try lengths 3-20px, prefer 6-10px when possible
 
 ## Visual Parameters
