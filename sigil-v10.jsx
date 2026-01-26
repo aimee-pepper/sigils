@@ -235,7 +235,8 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
     const next = sortedByValue[i + 1];
     
     const vertexAngle = calculateVertexAngle(prev, curr, next);
-    if (vertexAngle < 30 || vertexAngle > 330) {
+    // Interior angle < 30° means a very sharp/acute point
+    if (vertexAngle < 30) {
       allAcuteVertices.push({ x: curr.x, y: curr.y, angle: vertexAngle, index: i });
     }
   }
