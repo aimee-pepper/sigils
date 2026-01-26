@@ -358,8 +358,9 @@
         const next = sortedByValue[i + 1];
 
         const vertexAngle = calculateVertexAngle(prev, curr, next);
-        // Interior angle < 30° means a very sharp point
-        if (vertexAngle < 30) {
+        // Check if either interior or exterior angle is acute (< 30°)
+        // Interior < 30° = sharp point, Interior > 150° = exterior < 30° (nearly straight)
+        if (vertexAngle < 30 || vertexAngle > 150) {
           allAcuteVertices.push({ x: curr.x, y: curr.y, angle: vertexAngle, index: i });
         }
       }

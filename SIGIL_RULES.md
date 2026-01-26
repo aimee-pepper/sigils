@@ -27,7 +27,8 @@
 
 ## Vertex Angle Dots (Acute Angles)
 - Calculate interior angle at each vertex where path changes direction
-- If interior angle < 30° (very sharp point) → eligible for solid dot
+- If interior angle < 30° OR exterior angle < 30° (i.e., interior > 150°) → eligible for solid dot
+- This catches both sharp points and nearly-straight-through vertices
 - Only 50% of eligible vertices receive dots (seeded random selection)
 
 ## Arc Decorative Dots
