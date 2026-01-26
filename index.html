@@ -598,7 +598,8 @@
 
       const circleIntersections = intersections.filter(int => int.useCircle);
 
-      return { paths, markers, intersections: circleIntersections, allIntersections: intersections, acuteVertices, arcDots, cx, cy, rings, maxRadius, points, sortedByValue };
+      // Include pathData for debugging
+      return { paths, pathData, markers, intersections: circleIntersections, allIntersections: intersections, acuteVertices, arcDots, cx, cy, rings, maxRadius, points, sortedByValue };
     };
 
     const SigilSVG = ({ sigil, size, showGuides = false, showPoints = false }) => {
@@ -744,12 +745,15 @@
               </label>
             </div>
 
-            {processed && (
+            {processed && sigil && (
               <div className="info" style={{marginTop: '16px'}}>
-                Letters: {processed.unique.join(', ')} |
-                Values: {processed.numbers.join(', ')} |
-                {processed.unique.length} points
-                {sigil && ` | Arcs: ${sigil.paths.filter(p => p.arcData).length} | Arc dots: ${sigil.arcDots.length}`}
+                <div>Letters: {processed.unique.join(', ')}</div>
+                <div>Values: {processed.numbers.join(', ')}</div>
+                <div style={{fontWeight: 'bold', color: sigil.pathData.filter(p => p.type === 'arc').length > 0 ? 'green' : 'red'}}>
+                  {processed.unique.length} points |
+                  Arcs: {sigil.pathData.filter(p => p.type === 'arc').length} |
+                  Arc dots: {sigil.arcDots.length}
+                </div>
               </div>
             )}
 
