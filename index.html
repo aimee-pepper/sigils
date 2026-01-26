@@ -628,7 +628,7 @@
 
           {/* Arc decorative dots */}
           {sigil.arcDots.map((d, i) => (
-            <circle key={`arcdot-${i}`} cx={d.x} cy={d.y} r={2} fill={color} />
+            <circle key={`arcdot-${i}`} cx={d.x} cy={d.y} r={3} fill="#ef4444" />
           ))}
 
           {/* Start marker */}
@@ -749,6 +749,7 @@
                 Letters: {processed.unique.join(', ')} |
                 Values: {processed.numbers.join(', ')} |
                 {processed.unique.length} points
+                {sigil && ` | Arcs: ${sigil.paths.filter(p => p.arcData).length} | Arc dots: ${sigil.arcDots.length}`}
               </div>
             )}
 
