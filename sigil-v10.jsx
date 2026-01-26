@@ -227,7 +227,7 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
   
   const sortedByValue = [...points].sort((a, b) => a.number - b.number);
   
-  // Acute vertices: angle < 30° or > 330° - only 50% get dots
+  // Acute vertices: interior < 30° or > 150° (exterior < 30°) - only 50% get dots
   const allAcuteVertices = [];
   for (let i = 1; i < sortedByValue.length - 1; i++) {
     const prev = sortedByValue[i - 1];
