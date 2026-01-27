@@ -413,11 +413,10 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
     const circumference = 2 * Math.PI * p.radius;
     
     // Compare arc length to circumference fractions
-    // Lowered thresholds so adjacent arcs on full rings can qualify
     let numDots = 0;
-    if (arcLength >= circumference / 4) numDots = 3;      // >= 90° (1/4)
-    else if (arcLength >= circumference / 6) numDots = 2; // >= 60° (1/6)
-    else if (arcLength >= circumference / 10) numDots = 1; // >= 36° (1/10)
+    if (arcLength >= circumference / 2) numDots = 3;      // >= 180° (1/2)
+    else if (arcLength >= circumference / 3) numDots = 2; // >= 120° (1/3)
+    else if (arcLength >= circumference / 4) numDots = 1; // >= 90° (1/4)
     
     // Max 3 dots
     numDots = Math.min(numDots, 3);

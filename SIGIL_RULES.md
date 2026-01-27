@@ -33,9 +33,9 @@
 
 ## Arc Decorative Dots
 - Compare arc length to the arc's ring circumference (2πr)
-- Arc ≥ 1/10 circumference (36°) → 1 dot
-- Arc ≥ 1/6 circumference (60°) → 2 dots
-- Arc ≥ 1/4 circumference (90°) → 3 dots
+- Arc ≥ 1/4 circumference (90°) → 1 dot
+- Arc ≥ 1/3 circumference (120°) → 2 dots
+- Arc ≥ 1/2 circumference (180°) → 3 dots
 - Maximum 3 dots per arc
 - Dots spaced evenly with slight random jitter
 - No overlapping dots (minimum 8px apart)
