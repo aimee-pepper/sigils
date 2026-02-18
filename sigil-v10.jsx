@@ -1,5 +1,115 @@
 import React, { useState } from 'react';
 
+// Heat map configuration
+const HEAT_CONFIG = {
+  gridSize: 6,        // 6x6 grid (~33px cells for 200px canvas)
+  cellThreshold: 2,   // 2+ intersections = warm cell
+  zoneThreshold: 2,   // severity sum to trigger alternatives (lowered for more sensitivity)
+};
+
+// Layout modes
+const LayoutMode = {
+  STANDARD: 'standard',
+  VENN: 'venn',
+  EXTRA_RINGS: 'extra_rings',
+  SATELLITE: 'satellite',
+};
+
+// Grid-based heat map analysis
+const analyzeHeatMap = (intersections, size, gridSize = HEAT_CONFIG.gridSize) => {
+  const cellSize = size / gridSize;
+  const cells = [];
+
+  // Initialize grid
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      cells.push({
+        x: x * cellSize,
+        y: y * cellSize,
+        gridX: x,
+        gridY: y,
+        count: 0,
+        intersections: []
+      });
+    }
+  }
+
+  // Count intersections per cell
+  for (const int of intersections) {
+    const gridX = Math.min(gridSize - 1, Math.floor(int.x / cellSize));
+    const gridY = Math.min(gridSize - 1, Math.floor(int.y / cellSize));
+    const cellIdx = gridY * gridSize + gridX;
+    cells[cellIdx].count++;
+    cells[cellIdx].intersections.push(int);
+  }
+
+  // Find warm cells (count >= threshold)
+  const warmCells = cells.filter(c => c.count >= HEAT_CONFIG.cellThreshold);
+
+  // Flood-fill to find connected hot zones
+  const visited = new Set();
+  const zones = [];
+
+  const getNeighbors = (cell) => {
+    const neighbors = [];
+    const { gridX, gridY } = cell;
+    for (const [dx, dy] of [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [1,-1], [-1,1], [1,1]]) {
+      const nx = gridX + dx;
+      const ny = gridY + dy;
+      if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+        const neighbor = warmCells.find(c => c.gridX === nx && c.gridY === ny);
+        if (neighbor) neighbors.push(neighbor);
+      }
+    }
+    return neighbors;
+  };
+
+  for (const cell of warmCells) {
+    const key = `${cell.gridX},${cell.gridY}`;
+    if (visited.has(key)) continue;
+
+    // BFS flood-fill
+    const zone = [];
+    const queue = [cell];
+
+    while (queue.length > 0) {
+      const curr = queue.shift();
+      const currKey = `${curr.gridX},${curr.gridY}`;
+      if (visited.has(currKey)) continue;
+      visited.add(currKey);
+      zone.push(curr);
+
+      for (const neighbor of getNeighbors(curr)) {
+        const nKey = `${neighbor.gridX},${neighbor.gridY}`;
+        if (!visited.has(nKey)) queue.push(neighbor);
+      }
+    }
+
+    if (zone.length > 0) {
+      // Calculate zone center and severity
+      const totalCount = zone.reduce((sum, c) => sum + c.count, 0);
+      const centerX = zone.reduce((sum, c) => sum + (c.x + cellSize/2) * c.count, 0) / totalCount;
+      const centerY = zone.reduce((sum, c) => sum + (c.y + cellSize/2) * c.count, 0) / totalCount;
+      const radius = Math.max(...zone.map(c =>
+        Math.hypot(c.x + cellSize/2 - centerX, c.y + cellSize/2 - centerY)
+      )) + cellSize;
+
+      zones.push({
+        centerX,
+        centerY,
+        radius,
+        severity: totalCount,
+        cells: zone
+      });
+    }
+  }
+
+  const globalScore = zones.reduce((sum, z) => sum + z.severity, 0);
+  const isHot = globalScore >= HEAT_CONFIG.zoneThreshold;
+
+  return { isHot, globalScore, zones, cells, cellSize };
+};
+
 const processText = (text) => {
   const words = text.toLowerCase().split(/\s+/);
   const noVowels = words.map(w => w.replace(/[aeiou]/g, ''));
@@ -11,6 +121,8 @@ const processText = (text) => {
 
 const isAdjacentOnRing = (p1, p2, pointsPerRing) => {
   if (p1.ringIndex !== p2.ringIndex) return false;
+  // Prevent arcs across different groups (venn/satellite layouts)
+  if (p1.group && p2.group && p1.group !== p2.group) return false;
   const diff = Math.abs(p1.positionInRing - p2.positionInRing);
   const max = Math.min(pointsPerRing, p1.ringTotal);
   return diff === 1 || diff === max - 1;
@@ -165,14 +277,16 @@ const getBarCollisionDistance = (endPoint, perpAngle, barLen, pathData, cx, cy, 
         if (d < 4) minDist = Math.min(minDist, d);
       }
     } else if (p.type === 'arc') {
-      const int = lineArcIntersection(bar1, bar2, p.from, p.to, cx, cy, p.radius);
+      const arcCx = p.from.circleCx ?? cx;
+      const arcCy = p.from.circleCy ?? cy;
+      const int = lineArcIntersection(bar1, bar2, p.from, p.to, arcCx, arcCy, p.radius);
       if (int) {
         const dist = Math.hypot(int.x - endPoint.x, int.y - endPoint.y);
         minDist = Math.min(minDist, dist);
       }
     }
   }
-  
+
   return minDist;
 };
 
@@ -189,41 +303,219 @@ const closestPointOnSegment = (pt, segA, segB) => {
   return { x: segA.x + t * dx, y: segA.y + t * dy };
 };
 
-const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
-  const cx = size / 2;
-  const cy = size / 2;
+// Standard layout: concentric rings
+const generateStandardLayout = (unique, numbers, size, pointsPerRing, cx, cy) => {
   const n = unique.length;
-  
-  if (n < 2) return { paths: [], markers: [], intersections: [], acuteVertices: [], arcDots: [], cx, cy, rings: [], maxRadius: 0 };
-  
   const numRings = Math.ceil(n / pointsPerRing);
   const maxRadius = size * 0.42;
   const minRadius = maxRadius / (1 + (numRings - 1) / 2);
   const ringGap = minRadius / 2;
-  
+
   const rings = [];
   for (let i = 0; i < numRings; i++) {
     rings.push(maxRadius - i * ringGap);
   }
-  
+
   const points = unique.map((letter, i) => {
     const ringIndex = Math.floor(i / pointsPerRing);
     const positionInRing = i % pointsPerRing;
     const radius = rings[ringIndex];
-    
+
     const startOfRing = ringIndex * pointsPerRing;
     const endOfRing = Math.min(startOfRing + pointsPerRing, n);
     const ringTotal = endOfRing - startOfRing;
-    
+
     const angle = (positionInRing / ringTotal) * Math.PI * 2 - Math.PI / 2;
-    
+
     return {
       letter, number: numbers[i], index: i, ringIndex, positionInRing, ringTotal, radius,
       x: cx + Math.cos(angle) * radius,
       y: cy + Math.sin(angle) * radius,
-      angle
+      angle,
+      group: 'main'
     };
   });
+
+  return { points, rings, maxRadius };
+};
+
+// Venn layout: two overlapping offset circles
+const generateVennLayout = (unique, numbers, size, pointsPerRing, cx, cy) => {
+  const n = unique.length;
+  const margin = size * 0.05;
+  const availableWidth = size - 2 * margin;
+  // Two circles with ~60% overlap: total width = 2*radius + offset = 2*radius + 0.4*radius = 2.4*radius
+  const maxRadius = availableWidth / 2.4;
+  const offset = maxRadius * 0.4; // 60% overlap
+
+  // Split points between left and right circles
+  const leftCount = Math.ceil(n / 2);
+  const rightCount = n - leftCount;
+
+  const leftCx = cx - offset / 2;
+  const rightCx = cx + offset / 2;
+
+  const rings = [maxRadius]; // Single ring per circle
+  const points = [];
+
+  // Left circle points
+  for (let i = 0; i < leftCount; i++) {
+    const angle = (i / leftCount) * Math.PI * 2 - Math.PI / 2;
+    points.push({
+      letter: unique[i],
+      number: numbers[i],
+      index: i,
+      ringIndex: 0,
+      positionInRing: i,
+      ringTotal: leftCount,
+      radius: maxRadius,
+      x: leftCx + Math.cos(angle) * maxRadius,
+      y: cy + Math.sin(angle) * maxRadius,
+      angle,
+      group: 'left',
+      circleCx: leftCx,
+      circleCy: cy
+    });
+  }
+
+  // Right circle points
+  for (let i = 0; i < rightCount; i++) {
+    const globalIdx = leftCount + i;
+    const angle = (i / rightCount) * Math.PI * 2 - Math.PI / 2;
+    points.push({
+      letter: unique[globalIdx],
+      number: numbers[globalIdx],
+      index: globalIdx,
+      ringIndex: 0,
+      positionInRing: i,
+      ringTotal: rightCount,
+      radius: maxRadius,
+      x: rightCx + Math.cos(angle) * maxRadius,
+      y: cy + Math.sin(angle) * maxRadius,
+      angle,
+      group: 'right',
+      circleCx: rightCx,
+      circleCy: cy
+    });
+  }
+
+  return { points, rings, maxRadius, leftCx, rightCx, cy: cy };
+};
+
+// Extra rings layout: more rings with fewer points each
+const generateExtraRingsLayout = (unique, numbers, size, pointsPerRing, cx, cy) => {
+  // Reduce points per ring to ~60% to create more rings
+  const reducedPointsPerRing = Math.max(3, Math.floor(pointsPerRing * 0.6));
+  return generateStandardLayout(unique, numbers, size, reducedPointsPerRing, cx, cy);
+};
+
+// Satellite layout: main ring + connected smaller ring
+const generateSatelliteLayout = (unique, numbers, size, pointsPerRing, cx, cy) => {
+  const n = unique.length;
+  const mainCount = Math.ceil(n * 0.7); // 70% on main ring
+  const satCount = n - mainCount; // 30% on satellite
+
+  // Calculate sizes to fit within canvas
+  const margin = size * 0.05;
+  const gap = size * 0.03;
+  // Total width: mainRadius + mainRadius + gap + satRadius + satRadius = 2*main + gap + 2*sat
+  // With sat = 0.5 * main: 2*main + gap + main = 3*main + gap
+  // Available = size - 2*margin, so main = (available - gap) / 3
+  const availableWidth = size - 2 * margin;
+  const mainRadius = (availableWidth - gap) / 3;
+  const satRadius = mainRadius * 0.5;
+  const satOffset = mainRadius + gap + satRadius;
+
+  // Sort by value to determine which go to satellite (highest values)
+  const sorted = unique.map((letter, i) => ({ letter, number: numbers[i], origIndex: i }))
+    .sort((a, b) => a.number - b.number);
+
+  const mainLetters = sorted.slice(0, mainCount);
+  const satLetters = sorted.slice(mainCount);
+
+  const rings = [mainRadius, satRadius];
+  const points = [];
+
+  // Shift main ring left so the whole composition is centered
+  const mainCx = cx - (gap / 2 + satRadius);
+
+  // Main ring points (restore original order for placement)
+  const mainByOrig = mainLetters.sort((a, b) => a.origIndex - b.origIndex);
+  for (let i = 0; i < mainByOrig.length; i++) {
+    const { letter, number, origIndex } = mainByOrig[i];
+    const angle = (i / mainByOrig.length) * Math.PI * 2 - Math.PI / 2;
+    points.push({
+      letter, number, index: origIndex,
+      ringIndex: 0,
+      positionInRing: i,
+      ringTotal: mainByOrig.length,
+      radius: mainRadius,
+      x: mainCx + Math.cos(angle) * mainRadius,
+      y: cy + Math.sin(angle) * mainRadius,
+      angle,
+      group: 'main',
+      circleCx: mainCx,
+      circleCy: cy
+    });
+  }
+
+  // Satellite ring points (highest letter values)
+  const satCx = mainCx + satOffset;
+  const satByOrig = satLetters.sort((a, b) => a.origIndex - b.origIndex);
+  for (let i = 0; i < satByOrig.length; i++) {
+    const { letter, number, origIndex } = satByOrig[i];
+    const angle = (i / satByOrig.length) * Math.PI * 2 - Math.PI / 2;
+    points.push({
+      letter, number, index: origIndex,
+      ringIndex: 1,
+      positionInRing: i,
+      ringTotal: satByOrig.length,
+      radius: satRadius,
+      x: satCx + Math.cos(angle) * satRadius,
+      y: cy + Math.sin(angle) * satRadius,
+      angle,
+      group: 'satellite',
+      circleCx: satCx,
+      circleCy: cy
+    });
+  }
+
+  return {
+    points,
+    rings,
+    maxRadius: mainRadius,
+    mainCx,
+    satCx,
+    satCy: cy,
+    satRadius,
+    mainRadius,
+    hasConnector: satCount > 0
+  };
+};
+
+// Generate points based on layout mode
+const generatePoints = (unique, numbers, size, pointsPerRing, layoutMode, cx, cy) => {
+  switch (layoutMode) {
+    case LayoutMode.VENN:
+      return generateVennLayout(unique, numbers, size, pointsPerRing, cx, cy);
+    case LayoutMode.EXTRA_RINGS:
+      return generateExtraRingsLayout(unique, numbers, size, pointsPerRing, cx, cy);
+    case LayoutMode.SATELLITE:
+      return generateSatelliteLayout(unique, numbers, size, pointsPerRing, cx, cy);
+    default:
+      return generateStandardLayout(unique, numbers, size, pointsPerRing, cx, cy);
+  }
+};
+
+const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6, layoutMode = LayoutMode.STANDARD) => {
+  const cx = size / 2;
+  const cy = size / 2;
+  const n = unique.length;
+
+  if (n < 2) return { paths: [], markers: [], intersections: [], acuteVertices: [], arcDots: [], cx, cy, rings: [], maxRadius: 0, layoutMode };
+
+  const layout = generatePoints(unique, numbers, size, pointsPerRing, layoutMode, cx, cy);
+  const { points, rings, maxRadius } = layout;
   
   const sortedByValue = [...points].sort((a, b) => a.number - b.number);
   
@@ -278,10 +570,14 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
           crossingAngle = calculateCrossingAngle(p1.from, p1.to, p2.from, p2.to);
         }
       } else if (p1.type === 'line' && p2.type === 'arc') {
-        int = lineArcIntersection(p1.from, p1.to, p2.from, p2.to, cx, cy, p2.radius);
+        const arcCx = p2.from.circleCx ?? cx;
+        const arcCy = p2.from.circleCy ?? cy;
+        int = lineArcIntersection(p1.from, p1.to, p2.from, p2.to, arcCx, arcCy, p2.radius);
         if (int) crossingAngle = 50;
       } else if (p1.type === 'arc' && p2.type === 'line') {
-        int = lineArcIntersection(p2.from, p2.to, p1.from, p1.to, cx, cy, p1.radius);
+        const arcCx = p1.from.circleCx ?? cx;
+        const arcCy = p1.from.circleCy ?? cy;
+        int = lineArcIntersection(p2.from, p2.to, p1.from, p1.to, arcCx, arcCy, p1.radius);
         if (int) crossingAngle = 50;
       }
       
@@ -398,18 +694,22 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
         }
       }
     } else {
-      paths.push({ type: 'arc', d: arcPathD(p.from, p.to, cx, cy, p.radius), arcData: p });
+      const arcCx = p.from.circleCx ?? cx;
+      const arcCy = p.from.circleCy ?? cy;
+      paths.push({ type: 'arc', d: arcPathD(p.from, p.to, arcCx, arcCy, p.radius), arcData: p });
     }
   }
-  
+
   // Arc dots - compare to CIRCUMFERENCE
   const arcDots = [];
-  
+
   for (let i = 0; i < pathData.length; i++) {
     const p = pathData[i];
     if (p.type !== 'arc') continue;
-    
-    const arcLength = getArcLength(p.from, p.to, cx, cy, p.radius);
+
+    const arcCx = p.from.circleCx ?? cx;
+    const arcCy = p.from.circleCy ?? cy;
+    const arcLength = getArcLength(p.from, p.to, arcCx, arcCy, p.radius);
     const circumference = 2 * Math.PI * p.radius;
     
     // Compare arc length to circumference fractions
@@ -431,7 +731,7 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
         const jitter = (seededRandom(arcSeed + d * 73) - 0.5) * 0.15;
         const t = Math.max(0.1, Math.min(0.9, baseT + jitter));
         
-        const pt = getArcPoint(p.from, p.to, cx, cy, p.radius, t);
+        const pt = getArcPoint(p.from, p.to, arcCx, arcCy, p.radius, t);
         
         // Check for overlap with existing dots
         const overlaps = dotsForThisArc.some(existing => 
@@ -481,40 +781,156 @@ const generateSigil = (unique, numbers, size = 200, pointsPerRing = 6) => {
   
   // ALL intersections get markers - circles for useCircle, breaks are already in paths
   const circleIntersections = intersections.filter(int => int.useCircle);
-  
-  return { paths, markers, intersections: circleIntersections, allIntersections: intersections, acuteVertices, arcDots, cx, cy, rings, maxRadius };
+
+  return {
+    paths, markers, intersections: circleIntersections, allIntersections: intersections,
+    acuteVertices, arcDots, cx, cy, rings, maxRadius, layoutMode, layout, points, size
+  };
 };
 
-const SigilSVG = ({ sigil, size, showGuides = false }) => {
+// Generate sigil with alternatives when hot zones detected (or always if forceAll is true)
+const generateSigilWithAlternatives = (unique, numbers, size = 200, pointsPerRing = 6, forceAll = false) => {
+  // Generate standard layout first
+  const standard = generateSigil(unique, numbers, size, pointsPerRing, LayoutMode.STANDARD);
+
+  // Analyze heat map using all intersections (not just circle ones)
+  const heat = analyzeHeatMap(standard.allIntersections, size);
+
+  if (!heat.isHot && !forceAll) {
+    return {
+      layouts: { standard },
+      isHot: false,
+      heatAnalysis: heat,
+      recommendedLayout: 'standard'
+    };
+  }
+
+  // Generate all 4 layouts
+  const venn = generateSigil(unique, numbers, size, pointsPerRing, LayoutMode.VENN);
+  const extraRings = generateSigil(unique, numbers, size, pointsPerRing, LayoutMode.EXTRA_RINGS);
+  const satellite = generateSigil(unique, numbers, size, pointsPerRing, LayoutMode.SATELLITE);
+
+  // Calculate scores for each layout (lower is better)
+  const layouts = { standard, venn, extra_rings: extraRings, satellite };
+  const scores = {};
+
+  for (const [name, sigil] of Object.entries(layouts)) {
+    const heatResult = analyzeHeatMap(sigil.allIntersections, size);
+    scores[name] = heatResult.globalScore;
+  }
+
+  // Find recommended layout (lowest score)
+  const recommendedLayout = Object.entries(scores)
+    .sort((a, b) => a[1] - b[1])[0][0];
+
+  return {
+    layouts,
+    scores,
+    isHot: heat.isHot,
+    heatAnalysis: heat,
+    recommendedLayout
+  };
+};
+
+const SigilSVG = ({ sigil, size, showGuides = false, showHeatMap = false, heatAnalysis = null, label = null, score = null, generatedSize = null }) => {
   const color = "#3f3f46";
-  
+  // Use viewBox to scale content if generated at different size
+  const viewBoxSize = generatedSize || size;
+
+  // Support different layout ring guides
+  const renderGuides = () => {
+    const guides = [];
+    const layout = sigil.layout;
+
+    if (sigil.layoutMode === LayoutMode.VENN && layout) {
+      // Venn: two overlapping circles
+      guides.push(
+        <circle key="venn-left" cx={layout.leftCx} cy={layout.cy} r={sigil.maxRadius}
+          fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+      );
+      guides.push(
+        <circle key="venn-right" cx={layout.rightCx} cy={layout.cy} r={sigil.maxRadius}
+          fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+      );
+    } else if (sigil.layoutMode === LayoutMode.SATELLITE && layout) {
+      // Satellite: main ring + satellite ring with connector
+      guides.push(
+        <circle key="sat-main" cx={layout.mainCx} cy={layout.satCy} r={layout.mainRadius}
+          fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+      );
+      if (layout.hasConnector) {
+        guides.push(
+          <circle key="sat-satellite" cx={layout.satCx} cy={layout.satCy} r={layout.satRadius}
+            fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+        );
+        // Connector line
+        guides.push(
+          <line key="sat-connector"
+            x1={layout.mainCx + layout.mainRadius} y1={layout.satCy}
+            x2={layout.satCx - layout.satRadius} y2={layout.satCy}
+            stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+        );
+      }
+    } else {
+      // Standard/Extra rings: concentric circles
+      sigil.rings.forEach((r, i) => {
+        guides.push(
+          <circle key={`ring-${i}`} cx={sigil.cx} cy={sigil.cy} r={r}
+            fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
+        );
+      });
+    }
+    return guides;
+  };
+
   return (
-    <svg width={size} height={size} style={{background: '#fafaf9'}}>
-      {showGuides && sigil.rings.map((r, i) => (
-        <circle key={`ring-${i}`} cx={sigil.cx} cy={sigil.cy} r={r} fill="none" stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2,4" />
-      ))}
-      
+    <svg width={size} height={size} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} style={{background: '#fafaf9'}}>
+      {/* Heat map overlay */}
+      {showHeatMap && heatAnalysis && (
+        <g>
+          {/* Cell density overlay */}
+          {heatAnalysis.cells.filter(c => c.count > 0).map((cell, i) => (
+            <rect key={`heat-cell-${i}`}
+              x={cell.x} y={cell.y}
+              width={heatAnalysis.cellSize} height={heatAnalysis.cellSize}
+              fill="red"
+              opacity={Math.min(0.4, cell.count * 0.15)}
+            />
+          ))}
+          {/* Hot zone circles */}
+          {heatAnalysis.zones.map((zone, i) => (
+            <circle key={`heat-zone-${i}`}
+              cx={zone.centerX} cy={zone.centerY} r={zone.radius}
+              fill="none" stroke="red" strokeWidth="2" strokeDasharray="4,4"
+              opacity={0.7}
+            />
+          ))}
+        </g>
+      )}
+
+      {showGuides && renderGuides()}
+
       <circle cx={sigil.cx} cy={sigil.cy} r={2} fill={color} opacity={0.15} />
-      
+
       {sigil.paths.map((p, i) => (
         <path key={i} d={p.d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
       ))}
-      
+
       {/* Circle intersections */}
       {sigil.intersections.map((int, i) => (
         <circle key={`int-${i}`} cx={int.x} cy={int.y} r={4} fill="#fafaf9" stroke={color} strokeWidth="1.5" />
       ))}
-      
+
       {/* Acute vertices (< 30°) */}
       {sigil.acuteVertices.map((v, i) => (
         <circle key={`acute-${i}`} cx={v.x} cy={v.y} r={3} fill={color} />
       ))}
-      
+
       {/* Arc decorative dots */}
       {sigil.arcDots.map((d, i) => (
         <circle key={`arcdot-${i}`} cx={d.x} cy={d.y} r={2} fill={color} />
       ))}
-      
+
       {/* Start marker */}
       {sigil.markers.filter(m => m.type === 'start').map((m, i) => (
         <g key={`start-${i}`}>
@@ -522,48 +938,113 @@ const SigilSVG = ({ sigil, size, showGuides = false }) => {
           <circle cx={m.x} cy={m.y} r={2} fill={color} />
         </g>
       ))}
-      
+
       {/* End marker */}
       {sigil.markers.filter(m => m.type === 'end').map((m, i) => {
         const perpAngle = m.incomingAngle + Math.PI / 2;
         return (
-          <line 
+          <line
             key={`end-${i}`}
-            x1={m.x + Math.cos(perpAngle) * m.barLen} 
+            x1={m.x + Math.cos(perpAngle) * m.barLen}
             y1={m.y + Math.sin(perpAngle) * m.barLen}
-            x2={m.x - Math.cos(perpAngle) * m.barLen} 
+            x2={m.x - Math.cos(perpAngle) * m.barLen}
             y2={m.y - Math.sin(perpAngle) * m.barLen}
-            stroke={color} 
-            strokeWidth="3" 
+            stroke={color}
+            strokeWidth="3"
             strokeLinecap="round"
           />
         );
       })}
+
+      {/* Satellite connector line (actual path, not guide) */}
+      {sigil.layoutMode === LayoutMode.SATELLITE && sigil.layout?.hasConnector && (
+        <line
+          x1={sigil.layout.mainCx + sigil.layout.mainRadius}
+          y1={sigil.layout.satCy}
+          x2={sigil.layout.satCx - sigil.layout.satRadius}
+          y2={sigil.layout.satCy}
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      )}
     </svg>
   );
 };
 
-const SigilCompare = ({ text, size = 180, exampleNum }) => {
+// 2x2 comparison grid for alternative layouts
+const LayoutComparisonGrid = ({ result, size, showGuides, showHeatMap }) => {
+  const layoutNames = {
+    standard: 'Standard',
+    venn: 'Venn',
+    extra_rings: 'Extra Rings',
+    satellite: 'Satellite'
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {Object.entries(result.layouts).map(([name, sigil]) => (
+        <div key={name} className="flex flex-col items-center p-2 bg-stone-50 rounded">
+          <SigilSVG
+            sigil={sigil}
+            size={size}
+            generatedSize={sigil.size}
+            showGuides={showGuides}
+            showHeatMap={showHeatMap}
+            heatAnalysis={analyzeHeatMap(sigil.allIntersections, sigil.size)}
+          />
+          <p className={`text-xs mt-1 ${name === result.recommendedLayout ? 'text-green-600 font-medium' : 'text-zinc-500'}`}>
+            {layoutNames[name]} {result.scores && `(${result.scores[name]})`}
+            {name === result.recommendedLayout && ' *'}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const SigilCompare = ({ text, size = 180, exampleNum, showHeatMap = false }) => {
   const processed = processText(text);
   if (processed.numbers.length < 2) return null;
-  
-  const sigil5 = generateSigil(processed.unique, processed.numbers, size, 5);
-  const sigil7 = generateSigil(processed.unique, processed.numbers, size, 7);
-  
+
+  const result5 = generateSigilWithAlternatives(processed.unique, processed.numbers, size, 5);
+  const result7 = generateSigilWithAlternatives(processed.unique, processed.numbers, size, 7);
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <p className="text-xs text-zinc-600 mb-1 font-medium">Example #{exampleNum}</p>
       <p className="text-xs text-zinc-500 mb-1 text-center italic">"{text}"</p>
-      <p className="text-xs text-zinc-400 font-mono mb-3 text-center">{processed.unique.length} pts</p>
-      
-      <div className="flex gap-4 justify-center">
+      <p className="text-xs text-zinc-400 font-mono mb-3 text-center">
+        {processed.unique.length} pts
+        {(result5.isHot || result7.isHot) && <span className="text-red-500 ml-2">Hot zones detected</span>}
+      </p>
+
+      <div className="flex gap-4 justify-center flex-wrap">
         <div className="flex flex-col items-center">
-          <SigilSVG sigil={sigil5} size={size} showGuides={true} />
-          <p className="text-xs text-zinc-500 mt-2">#{exampleNum}a: 5/ring</p>
+          {result5.isHot ? (
+            <>
+              <p className="text-xs text-zinc-500 mb-1">5/ring alternatives:</p>
+              <LayoutComparisonGrid result={result5} size={size * 0.55} showGuides={true} showHeatMap={showHeatMap} />
+            </>
+          ) : (
+            <>
+              <SigilSVG sigil={result5.layouts.standard} size={size} generatedSize={result5.layouts.standard.size} showGuides={true} showHeatMap={showHeatMap} heatAnalysis={result5.heatAnalysis} />
+              <p className="text-xs text-zinc-500 mt-2">#{exampleNum}a: 5/ring</p>
+            </>
+          )}
         </div>
         <div className="flex flex-col items-center">
-          <SigilSVG sigil={sigil7} size={size} showGuides={true} />
-          <p className="text-xs text-zinc-500 mt-2">#{exampleNum}b: 7/ring</p>
+          {result7.isHot ? (
+            <>
+              <p className="text-xs text-zinc-500 mb-1">7/ring alternatives:</p>
+              <LayoutComparisonGrid result={result7} size={size * 0.55} showGuides={true} showHeatMap={showHeatMap} />
+            </>
+          ) : (
+            <>
+              <SigilSVG sigil={result7.layouts.standard} size={size} generatedSize={result7.layouts.standard.size} showGuides={true} showHeatMap={showHeatMap} heatAnalysis={result7.heatAnalysis} />
+              <p className="text-xs text-zinc-500 mt-2">#{exampleNum}b: 7/ring</p>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -572,7 +1053,9 @@ const SigilCompare = ({ text, size = 180, exampleNum }) => {
 
 export default function App() {
   const [customText, setCustomText] = useState('');
-  
+  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [pointsPerRing, setPointsPerRing] = useState(5);
+
   const examples = [
     "i have the stable resources needed to thrive",
     "protection and strength in all things",
@@ -581,48 +1064,73 @@ export default function App() {
     "clarity and focus",
     "creative flow",
   ];
-  
+
   const processed = customText.length > 2 ? processText(customText) : null;
-  const customSigil5 = processed ? generateSigil(processed.unique, processed.numbers, 200, 5) : null;
-  const customSigil7 = processed ? generateSigil(processed.unique, processed.numbers, 200, 7) : null;
-  
+  const customResult = processed
+    ? generateSigilWithAlternatives(processed.unique, processed.numbers, 200, pointsPerRing, true)
+    : null;
+
   return (
     <div className="min-h-screen bg-stone-100 p-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-xl font-light text-zinc-700 mb-1">Sigils v10</h1>
+        <h1 className="text-xl font-light text-zinc-700 mb-1">Sigils v11 - Heat Map Edition</h1>
         <p className="text-xs text-zinc-500 mb-4">
-          Acute &lt;30° → ● | Parallel → ○ | Perpendicular → break | 2+ overlapping breaks → ○ | Arc dots vs circumference
+          Hot zones trigger alternative layouts: Venn, Extra Rings, Satellite
         </p>
-        
+
         <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
-          <input
-            type="text"
-            value={customText}
-            onChange={(e) => setCustomText(e.target.value)}
-            placeholder="Try your own phrase..."
-            className="w-full p-2 border border-zinc-200 rounded text-sm focus:outline-none focus:border-zinc-400 mb-3"
-          />
-          {customSigil5 && customSigil7 && (
+          <div className="flex gap-3 mb-3">
+            <input
+              type="text"
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              placeholder="Try your own phrase..."
+              className="flex-1 p-2 border border-zinc-200 rounded text-sm focus:outline-none focus:border-zinc-400"
+            />
+            <input
+              type="number"
+              value={pointsPerRing}
+              onChange={(e) => setPointsPerRing(Math.max(3, Math.min(12, parseInt(e.target.value) || 5)))}
+              min="3"
+              max="12"
+              className="w-16 p-2 border border-zinc-200 rounded text-sm"
+              title="Points per ring"
+            />
+          </div>
+
+          <div className="flex gap-4 mb-3">
+            <label className="flex items-center gap-2 text-xs text-zinc-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showHeatMap}
+                onChange={(e) => setShowHeatMap(e.target.checked)}
+                className="w-4 h-4"
+              />
+              Show heat map
+            </label>
+          </div>
+
+          {customResult && (
             <div>
               <p className="text-xs text-zinc-600 mb-1 font-medium">Custom</p>
-              <p className="text-xs text-zinc-400 font-mono mb-3 text-center">{processed.unique.length} pts</p>
-              <div className="flex gap-4 justify-center">
-                <div className="flex flex-col items-center">
-                  <SigilSVG sigil={customSigil5} size={200} showGuides={true} />
-                  <p className="text-xs text-zinc-500 mt-2">5/ring</p>
-                </div>
-                <div className="flex flex-col items-center">
-                  <SigilSVG sigil={customSigil7} size={200} showGuides={true} />
-                  <p className="text-xs text-zinc-500 mt-2">7/ring</p>
-                </div>
-              </div>
+              <p className="text-xs text-zinc-400 font-mono mb-1 text-center">
+                {processed.unique.length} pts | Heat score: {customResult.heatAnalysis.globalScore}
+                {customResult.isHot && <span className="text-red-500 ml-1">(HOT)</span>}
+              </p>
+
+              <LayoutComparisonGrid
+                result={customResult}
+                size={150}
+                showGuides={true}
+                showHeatMap={showHeatMap}
+              />
             </div>
           )}
         </div>
-        
+
         <div className="space-y-4">
           {examples.map((text, i) => (
-            <SigilCompare key={i} text={text} size={170} exampleNum={i + 1} />
+            <SigilCompare key={i} text={text} size={170} exampleNum={i + 1} showHeatMap={showHeatMap} />
           ))}
         </div>
       </div>

@@ -6,7 +6,45 @@
 3. Deduplicate characters (preserve order of first appearance)
 4. Map to numbers: a=1, b=2, ..., z=26
 
-## Point Placement
+## Heat Map Detection
+When intersections cluster in crowded zones, alternative layouts are offered.
+
+### Configuration
+- Grid: 6x6 (~33px cells for 200px canvas)
+- Cell threshold: 2+ intersections = warm cell
+- Zone threshold: Global score >= 4 triggers alternatives
+
+### Analysis Process
+1. Divide canvas into grid cells
+2. Count intersections per cell
+3. Find "warm" cells (count >= threshold)
+4. Flood-fill adjacent warm cells to find connected hot zones
+5. Calculate zone severity (sum of intersection counts)
+6. If global score >= threshold, generate alternative layouts
+
+### Alternative Layouts
+When hot zones detected, show 4 layout options side-by-side:
+
+1. **Standard** - Current concentric rings (default)
+2. **Venn Diagram** - Two overlapping offset circles (~60% overlap)
+   - First half of points on left circle
+   - Second half on right circle
+   - Cross-circle connections = straight lines only
+3. **Extra Rings** - More rings with fewer points each
+   - Reduces `pointsPerRing` to ~60% of original
+   - Creates more concentric rings automatically
+4. **Satellite** - Main ring + connected smaller ring
+   - Main ring at center with ~70% of points
+   - Smaller satellite ring offset to the side with ~30% of points
+   - Highest letter values go to satellite
+   - Visual connecting line between rings
+
+### Layout Scoring
+- Each layout gets a heat score (lower = better)
+- Recommended layout (*) has lowest score
+- User can choose any layout they prefer
+
+## Point Placement (Standard Layout)
 - Calculate rings needed: `ceil(point_count / points_per_ring)`
 - Ring spacing: gap between rings = half the innermost circle's radius
 - Points distributed evenly around each ring
@@ -17,6 +55,7 @@
 - Connect in sorted order
 - If consecutive points are adjacent on the same ring → arc follows ring curvature
 - Otherwise → straight line cuts across
+- **Group constraint**: Arcs only occur within the same group (for Venn/Satellite layouts, points on different circles always connect with straight lines)
 
 ## Intersection Markers
 - Calculate crossing angle: 0° = parallel, 90° = perpendicular
