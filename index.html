@@ -1105,31 +1105,34 @@
     }
     /* Print mode styles - thicker everything, scaled down to fit */
     .detail-content.print-mode .showcase-scaled-wrapper {
-      transform: scale(0.7) translateY(5%);
+      transform: scale(0.62) translateY(5%);
     }
     .detail-content.print-mode .detail-divider {
       height: 4px;
-      background: #3f3f46;
+      background: #ffffff;
     }
     .detail-content.print-mode .detail-letters {
       font-weight: 800;
-      font-size: calc(var(--font-section) * 1.6);
+      font-size: calc(var(--font-section) * 2);
+      color: #ffffff;
     }
     .detail-content.print-mode .detail-numbers {
       font-weight: 800;
-      font-size: calc(var(--font-tertiary) * 1.6);
+      font-size: calc(var(--font-tertiary) * 2);
+      color: #ffffff;
     }
     .detail-content.print-mode .detail-mini-label {
       font-weight: 800;
-      font-size: calc(var(--font-small) * 1.4);
+      font-size: calc(var(--font-small) * 1.6);
+      color: #ffffff;
     }
     .detail-content.print-mode .detail-main-sigil {
-      transform: scale(0.9);
+      transform: scale(0.85);
       margin-top: calc(var(--sp-md) * -1.5);
       margin-bottom: calc(var(--sp-xs) * -1);
     }
     .detail-panel.showcase-dark .detail-content.print-mode .detail-divider {
-      background: #a1a1aa;
+      background: #ffffff;
     }
     .detail-close {
       position: absolute;
@@ -5402,8 +5405,11 @@
                               const upperDecorRadius = line1Radius + X + capHeight;
 
                               const printStroke = printPreview ? 3 : 0.5;
-                              const printWeight = printPreview ? 800 : 300;
-                              const printOpacity = printPreview ? 0.8 : 0.4;
+                              const printWeight = printPreview ? 900 : 300;
+                              const printOpacity = printPreview ? 1 : 0.4;
+                              const printColor = printPreview ? '#ffffff' : 'currentColor';
+                              const printFontSize = printPreview ? fontSize * 1.15 : fontSize;
+                              const offset = printPreview ? 1.5 : 0;
 
                               return (
                                 <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
@@ -5412,17 +5418,31 @@
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                     <path id="textArc3" d={arc(line3Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
-                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
+                                  {/* Offset duplicate for bold effect in print mode */}
+                                  {printPreview && (
+                                    <>
+                                      <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                        <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
+                                      </text>
+                                      <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                        <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
+                                      </text>
+                                      <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                        <textPath href="#textArc3" startOffset="50%">{line3}</textPath>
+                                      </text>
+                                    </>
+                                  )}
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                     <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                     <textPath href="#textArc3" startOffset="50%">{line3}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
                                 </svg>
                               );
                             }
@@ -5452,8 +5472,11 @@
                               const upperDecorRadius = line1Radius + X + capHeight;  // top decor: gap X from char tops
 
                               const printStroke = printPreview ? 3 : 0.5;
-                              const printWeight = printPreview ? 800 : 300;
-                              const printOpacity = printPreview ? 0.8 : 0.4;
+                              const printWeight = printPreview ? 900 : 300;
+                              const printOpacity = printPreview ? 1 : 0.4;
+                              const printColor = printPreview ? '#ffffff' : 'currentColor';
+                              const printFontSize = printPreview ? fontSize * 1.15 : fontSize;
+                              const offset = printPreview ? 1.5 : 0;
 
                               return (
                                 <svg width="100%" viewBox={`0 -70 ${w} 130`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
@@ -5461,14 +5484,25 @@
                                     <path id="textArc1" d={arc(line1Radius)} fill="none" />
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
-                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
+                                  {/* Offset duplicate for bold effect in print mode */}
+                                  {printPreview && (
+                                    <>
+                                      <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                        <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
+                                      </text>
+                                      <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                        <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
+                                      </text>
+                                    </>
+                                  )}
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                     <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
                                 </svg>
                               );
                             }
@@ -5489,19 +5523,28 @@
                             const upperDecorRadius = textRadius + X + capHeight; // top decor: gap X from char tops
 
                             const printStroke = printPreview ? 3 : 0.5;
-                            const printWeight = printPreview ? 800 : 300;
-                            const printOpacity = printPreview ? 0.8 : 0.4;
+                            const printWeight = printPreview ? 900 : 300;
+                            const printOpacity = printPreview ? 1 : 0.4;
+                            const printColor = printPreview ? '#ffffff' : 'currentColor';
+                            const printFontSize = printPreview ? fontSize * 1.15 : fontSize;
+                            const offset = printPreview ? 1.5 : 0;
 
                             return (
                               <svg width="100%" viewBox={`0 -60 ${w} 110`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
                                 <defs>
                                   <path id="textArc" d={arc(textRadius)} fill="none" />
                                 </defs>
-                                <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
-                                <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
+                                <path d={arc(upperDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
+                                {/* Offset duplicate for bold effect in print mode */}
+                                {printPreview && (
+                                  <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor} dx={offset} dy={-offset}>
+                                    <textPath href="#textArc" startOffset="50%">{phrase}</textPath>
+                                  </text>
+                                )}
+                                <text fontSize={printFontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing} fill={printColor}>
                                   <textPath href="#textArc" startOffset="50%">{phrase}</textPath>
                                 </text>
-                                <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
+                                <path d={arc(lowerDecorRadius)} fill="none" stroke={printColor} strokeWidth={printStroke} opacity={printOpacity} />
                               </svg>
                             );
                           })()}
