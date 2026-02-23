@@ -5260,7 +5260,8 @@
                             };
 
                             const baseTextWidth = measureTextWidth(phrase, 36, 5);
-                            const needsTwoLines = baseTextWidth > targetWidth * 1.3 && words.length > 1;
+                            const needsThreeLines = baseTextWidth > targetWidth * 2.0 && words.length >= 3;
+                            const needsTwoLines = !needsThreeLines && baseTextWidth > targetWidth * 1.3 && words.length > 1;
 
                             // Standardized arc settings - concentric arcs for true parallel curves
                             const w = headerWidth;
@@ -5281,6 +5282,54 @@
                               return `M 0,${startY} A ${radius},${radius} 0 0,1 ${w},${startY}`;
                             };
 
+                            // THREE LINES
+                            if (needsThreeLines) {
+                              // Split words into 3 roughly equal groups
+                              const third = Math.ceil(words.length / 3);
+                              const twoThirds = Math.ceil(words.length * 2 / 3);
+                              const line1 = words.slice(0, third).join(' ');
+                              const line2 = words.slice(third, twoThirds).join(' ');
+                              const line3 = words.slice(twoThirds).join(' ');
+
+                              // Find longest line for sizing
+                              const longestLine = [line1, line2, line3].reduce((a, b) => a.length >= b.length ? a : b);
+                              const { fontSize, letterSpacing } = calcTextParams(longestLine, 24, 72);
+
+                              // Font metrics
+                              const capHeight = fontSize * 0.72;
+                              const descHeight = fontSize * 0.22;
+                              const X = decorOffset;
+
+                              // CALCULATED RADII for 3 lines
+                              const lowerDecorRadius = 255;
+                              const line3Radius = 255 + X + descHeight;                           // bottom text
+                              const line2Radius = line3Radius + (X/2) + capHeight + descHeight;   // middle text
+                              const line1Radius = line2Radius + (X/2) + capHeight + descHeight;   // top text
+                              const upperDecorRadius = line1Radius + X + capHeight;
+
+                              return (
+                                <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
+                                  <defs>
+                                    <path id="textArc1" d={arc(line1Radius)} fill="none" />
+                                    <path id="textArc2" d={arc(line2Radius)} fill="none" />
+                                    <path id="textArc3" d={arc(line3Radius)} fill="none" />
+                                  </defs>
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
+                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                    <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
+                                  </text>
+                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                    <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
+                                  </text>
+                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                    <textPath href="#textArc3" startOffset="50%">{line3}</textPath>
+                                  </text>
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
+                                </svg>
+                              );
+                            }
+
+                            // TWO LINES
                             if (needsTwoLines) {
                               const mid = Math.ceil(words.length / 2);
                               const line1 = words.slice(0, mid).join(' ');
@@ -5322,6 +5371,7 @@
                               );
                             }
 
+                            // ONE LINE
                             const { fontSize, letterSpacing } = calcTextParams(phrase, 32, 96);
 
                             // Font metrics (approximate for typical sans-serif)
