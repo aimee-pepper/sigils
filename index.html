@@ -5234,9 +5234,11 @@
                                   onClick={(e) => { e.stopPropagation(); setSelectedSigil({...item, phrase: currentText}); setShowcaseExpanded(true); }}
                                   title="View in showcase"
                                   style={{
-                                    position: 'absolute', top: '4px', right: '28px',
+                                    position: 'absolute', top: '4px', right: '26px',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    fontSize: '16px', opacity: selectedSigil && selectedSigil.id === item.id ? 1 : 0, transition: 'opacity 0.2s'
+                                    fontSize: '14px', padding: 0, width: '18px', height: '18px',
+                                    lineHeight: '18px', textAlign: 'center',
+                                    opacity: selectedSigil && selectedSigil.id === item.id ? 1 : 0, transition: 'opacity 0.2s'
                                   }}
                                 >
                                   {selectedSigil && selectedSigil.id === item.id ? '⭐' : '☆'}
@@ -5248,7 +5250,9 @@
                                   style={{
                                     position: 'absolute', top: '4px', right: '4px',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    fontSize: '16px', opacity: isFav ? 1 : 0, transition: 'opacity 0.2s'
+                                    fontSize: '14px', padding: 0, width: '18px', height: '18px',
+                                    lineHeight: '18px', textAlign: 'center',
+                                    opacity: isFav ? 1 : 0, transition: 'opacity 0.2s'
                                   }}
                                 >
                                   {isFav ? '💙' : '🤍'}
