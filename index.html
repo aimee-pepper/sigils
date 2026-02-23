@@ -1162,6 +1162,11 @@
       transform: scale(0.82);
       margin-top: calc(var(--sp-md) * -2);
       margin-bottom: calc(var(--sp-xs) * -1);
+      overflow: visible;
+    }
+    .detail-content.print-mode .detail-main-sigil svg {
+      overflow: visible;
+      border-radius: 0 !important;
     }
     /* Print mode in dark showcase - white text */
     .detail-panel.showcase-dark .detail-content.print-mode .detail-divider {
@@ -3980,8 +3985,8 @@
       const strokeMult = printMode ? 3.5 : (thinStroke ? 0.5 : 1);
       // Additional multiplier for path strokes only (main sigil can be thicker)
       const effectivePathStrokeMult = strokeMult * pathStrokeMult;
-      // Marker scale for print mode - larger terminals and dots
-      const effectiveMarkerScale = printMode ? markerScale * 2.2 : markerScale;
+      // Marker scale for print mode - slightly larger terminals and dots
+      const effectiveMarkerScale = printMode ? markerScale * 1.3 : markerScale;
 
       // For chained layouts, use tight contentBounds viewBox to reduce whitespace
       const isChained = sigil.layoutMode === 'chained' || sigil.layoutMode === LayoutMode.CHAINED;
