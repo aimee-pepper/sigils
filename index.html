@@ -1020,6 +1020,17 @@
     .detail-panel.showcase-dark .detail-phrase-arch path {
       stroke: #a1a1aa;
     }
+    /* Print mode header - white in dark mode */
+    .detail-panel.showcase-dark .detail-content.print-mode .detail-phrase-arch {
+      color: #ffffff;
+    }
+    .detail-panel.showcase-dark .detail-content.print-mode .detail-phrase-arch text {
+      fill: #ffffff;
+      stroke: #ffffff;
+    }
+    .detail-panel.showcase-dark .detail-content.print-mode .detail-phrase-arch path {
+      stroke: #ffffff;
+    }
     .detail-main-sigil {
       margin-top: calc(var(--sp-md) * -1);
     }
@@ -1125,6 +1136,22 @@
       font-weight: 900;
       font-size: calc(var(--font-small) * 1.8);
       color: #1a1a1a;
+    }
+    .detail-content.print-mode .detail-mini-row {
+      overflow: visible;
+      padding-top: 8px;
+    }
+    .detail-content.print-mode .detail-mini-card {
+      overflow: visible;
+    }
+    .detail-content.print-mode .detail-mini-card svg {
+      overflow: visible;
+    }
+    .detail-content.print-mode .detail-info-section {
+      overflow: visible;
+    }
+    .detail-content.print-mode .showcase-scaled-wrapper {
+      overflow: visible;
     }
     .detail-content.print-mode .detail-main-sigil {
       transform: scale(0.82);
