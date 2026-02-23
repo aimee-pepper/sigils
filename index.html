@@ -1140,38 +1140,26 @@
         --base: min(440px, 92vw);
       }
 
+      body {
+        padding-bottom: 60px; /* Space for floating buttons */
+      }
+
       .app-layout {
         flex-direction: column;
       }
 
-      .left-panel {
-        width: 100%;
-        min-width: unset;
-        max-height: none;
-        position: relative;
-        border-right: none;
-        border-bottom: var(--sp-px) solid #e4e4e7;
-        padding: var(--sp-xs);
-        order: 2;
-      }
-
-      .left-panel.collapsed {
-        display: none;
-      }
-
-      .right-panel {
-        padding: var(--sp-xs);
-        order: 3;
-      }
-
-      /* Mobile text input - always visible at top */
+      /* Fixed input bar at top */
       .mobile-input-section {
         display: block;
-        order: 1;
-        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 90;
         padding: var(--sp-xs);
         background: white;
         border-bottom: var(--sp-px) solid #e4e4e7;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       }
 
       .dark-mode .mobile-input-section {
@@ -1181,46 +1169,18 @@
 
       .mobile-input-section input[type="text"] {
         width: 100%;
-        font-size: var(--font-primary);
+        font-size: 16px; /* Prevent zoom on iOS */
       }
 
       .mobile-input-section .info {
         margin-top: var(--sp-4xs);
         margin-bottom: 0;
+        font-size: var(--font-tiny);
       }
 
-      .mobile-controls-toggle {
-        display: flex;
-        order: 2;
-        align-items: center;
-        justify-content: center;
-        gap: var(--sp-4xs);
-        padding: var(--sp-3xs) var(--sp-xs);
-        background: #fafaf9;
-        border: none;
-        border-bottom: var(--sp-px) solid #e4e4e7;
-        font-size: var(--font-secondary);
-        color: #52525b;
-        cursor: pointer;
-        width: 100%;
-      }
-
-      .mobile-controls-toggle:hover {
-        background: #f5f5f4;
-      }
-
-      .dark-mode .mobile-controls-toggle {
-        background: #27272a;
-        border-color: #3f3f46;
-        color: #a1a1aa;
-      }
-
-      /* Hide the input section inside left-panel on mobile (it's in mobile-input-section) */
-      .left-panel .section:first-of-type {
-        display: none;
-      }
-
+      /* Tabs bar below fixed input */
       .tabs-bar {
+        margin-top: 70px; /* Below fixed input */
         padding: 0 var(--sp-xs);
         flex-wrap: wrap;
       }
@@ -1246,6 +1206,47 @@
         font-size: var(--font-secondary);
       }
 
+      /* Hide left panel completely on mobile - use floating button instead */
+      .left-panel {
+        display: none;
+      }
+
+      /* Floating controls panel */
+      .left-panel.mobile-open {
+        display: block;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 60px;
+        width: 100%;
+        min-width: unset;
+        max-height: none;
+        z-index: 95;
+        background: white;
+        border: none;
+        overflow-y: auto;
+        padding: var(--sp-sm);
+      }
+
+      .dark-mode .left-panel.mobile-open {
+        background: #262626;
+      }
+
+      .left-panel.mobile-open h1 {
+        display: none;
+      }
+
+      /* Hide duplicate input in left panel */
+      .left-panel .section:first-of-type {
+        display: none;
+      }
+
+      .right-panel {
+        padding: var(--sp-xs);
+        padding-bottom: 80px;
+      }
+
       .results-grid {
         justify-content: center;
       }
@@ -1254,23 +1255,68 @@
         padding: var(--sp-3xs);
       }
 
-      /* Showcase panel - collapsed state on mobile */
-      .detail-panel.collapsed {
-        position: relative;
-        width: 100%;
-        height: auto;
-        min-width: unset;
-        padding: var(--sp-xs) var(--sp-sm);
-        border-left: none;
+      /* Floating buttons at bottom */
+      .mobile-floating-buttons {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 91;
+        background: white;
         border-top: var(--sp-px) solid #e4e4e7;
-        order: 10;
-        flex-direction: row;
-        justify-content: center;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
       }
 
-      .detail-panel.collapsed .detail-panel-collapsed-label {
-        writing-mode: horizontal-tb;
-        text-orientation: mixed;
+      .dark-mode .mobile-floating-buttons {
+        background: #262626;
+        border-color: #3f3f46;
+      }
+
+      .mobile-floating-btn {
+        flex: 1;
+        padding: var(--sp-sm) var(--sp-xs);
+        border: none;
+        background: transparent;
+        font-size: var(--font-secondary);
+        color: #52525b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-4xs);
+      }
+
+      .mobile-floating-btn:first-child {
+        border-right: var(--sp-px) solid #e4e4e7;
+      }
+
+      .dark-mode .mobile-floating-btn:first-child {
+        border-color: #3f3f46;
+      }
+
+      .mobile-floating-btn:hover,
+      .mobile-floating-btn.active {
+        background: #f5f5f4;
+      }
+
+      .dark-mode .mobile-floating-btn {
+        color: #a1a1aa;
+      }
+
+      .dark-mode .mobile-floating-btn:hover,
+      .dark-mode .mobile-floating-btn.active {
+        background: #3f3f46;
+      }
+
+      /* Hide old mobile toggle */
+      .mobile-controls-toggle {
+        display: none;
+      }
+
+      /* Showcase panel - collapsed: hide completely (use floating button) */
+      .detail-panel.collapsed {
+        display: none;
       }
 
       /* Showcase panel - expanded state on mobile */
@@ -1291,6 +1337,7 @@
 
       .detail-content {
         padding: var(--sp-sm);
+        padding-top: var(--sp-xl);
       }
 
       .detail-close {
@@ -1303,16 +1350,14 @@
         z-index: 101;
       }
 
-      .dark-mode .detail-close {
+      .dark-mode .detail-close,
+      .detail-panel.showcase-dark .detail-close {
         background: rgba(39, 39, 42, 0.9);
-      }
-
-      .showcase-panel {
-        padding: var(--sp-sm);
+        color: #e4e4e7;
       }
 
       .showcase-scaled-wrapper {
-        transform: scale(0.65) translateY(0%);
+        transform: scale(0.6) translateY(-10%);
       }
 
       .info {
@@ -1347,10 +1392,6 @@
         padding: var(--sp-4xs) var(--sp-3xs);
         font-size: var(--font-tiny);
       }
-
-      .left-panel h1 {
-        display: none;
-      }
     }
 
     /* Hide mobile elements on desktop */
@@ -1358,6 +1399,9 @@
       display: none;
     }
     .mobile-input-section {
+      display: none;
+    }
+    .mobile-floating-buttons {
       display: none;
     }
   </style>
@@ -4664,7 +4708,7 @@
           </div>
 
           <div className="app-layout">
-            {/* Mobile input section - always visible on mobile */}
+            {/* Mobile input section - fixed at top on mobile */}
             <div className="mobile-input-section">
               {activeTab === 0 ? (
                 <input
@@ -4685,15 +4729,29 @@
               )}
             </div>
 
-            {/* Mobile controls toggle */}
-            <button
-              className="mobile-controls-toggle"
-              onClick={() => setMobileControlsOpen(!mobileControlsOpen)}
-            >
-              {mobileControlsOpen ? '▲ Hide Controls' : '▼ Show Controls'}
-            </button>
+            {/* Mobile floating buttons - fixed at bottom */}
+            <div className="mobile-floating-buttons">
+              <button
+                className={`mobile-floating-btn ${mobileControlsOpen ? 'active' : ''}`}
+                onClick={() => {
+                  setMobileControlsOpen(!mobileControlsOpen);
+                  if (!showcaseExpanded) setShowcaseExpanded(false);
+                }}
+              >
+                ⚙️ Controls
+              </button>
+              <button
+                className="mobile-floating-btn"
+                onClick={() => {
+                  setShowcaseExpanded(true);
+                  setMobileControlsOpen(false);
+                }}
+              >
+                ✨ Showcase
+              </button>
+            </div>
 
-            <div className={`left-panel ${mobileControlsOpen ? '' : 'collapsed'}`}>
+            <div className={`left-panel ${mobileControlsOpen ? 'mobile-open' : ''}`}>
               <h1>Sigil Generator</h1>
 
               {activeTab === 0 && (
