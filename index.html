@@ -1103,26 +1103,33 @@
     .detail-panel.showcase-dark .detail-numbers {
       color: #71717a;
     }
-    /* Print mode styles - thicker everything */
+    /* Print mode styles - thicker everything, scaled down to fit */
+    .detail-content.print-mode .showcase-scaled-wrapper {
+      transform: scale(0.7) translateY(5%);
+    }
     .detail-content.print-mode .detail-divider {
-      height: 3px;
+      height: 4px;
+      background: #3f3f46;
     }
     .detail-content.print-mode .detail-letters {
-      font-weight: 700;
-      font-size: calc(var(--font-section) * 1.2);
+      font-weight: 800;
+      font-size: calc(var(--font-section) * 1.6);
     }
     .detail-content.print-mode .detail-numbers {
-      font-weight: 700;
-      font-size: calc(var(--font-tertiary) * 1.2);
+      font-weight: 800;
+      font-size: calc(var(--font-tertiary) * 1.6);
     }
     .detail-content.print-mode .detail-mini-label {
-      font-weight: 700;
+      font-weight: 800;
+      font-size: calc(var(--font-small) * 1.4);
     }
-    .detail-content.print-mode .detail-phrase-arch text {
-      font-weight: 500;
+    .detail-content.print-mode .detail-main-sigil {
+      transform: scale(0.9);
+      margin-top: calc(var(--sp-md) * -1.5);
+      margin-bottom: calc(var(--sp-xs) * -1);
     }
-    .detail-content.print-mode .detail-phrase-arch path {
-      stroke-width: 1.5px;
+    .detail-panel.showcase-dark .detail-content.print-mode .detail-divider {
+      background: #a1a1aa;
     }
     .detail-close {
       position: absolute;
@@ -5394,8 +5401,9 @@
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight;   // top text
                               const upperDecorRadius = line1Radius + X + capHeight;
 
-                              const printStroke = printPreview ? 1.5 : 0.5;
-                              const printWeight = printPreview ? 600 : 300;
+                              const printStroke = printPreview ? 3 : 0.5;
+                              const printWeight = printPreview ? 800 : 300;
+                              const printOpacity = printPreview ? 0.8 : 0.4;
 
                               return (
                                 <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
@@ -5404,7 +5412,7 @@
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                     <path id="textArc3" d={arc(line3Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                                   <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
@@ -5414,7 +5422,7 @@
                                   <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc3" startOffset="50%">{line3}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                                 </svg>
                               );
                             }
@@ -5443,8 +5451,9 @@
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight;  // upper text: gap X/2 between lines
                               const upperDecorRadius = line1Radius + X + capHeight;  // top decor: gap X from char tops
 
-                              const printStroke = printPreview ? 1.5 : 0.5;
-                              const printWeight = printPreview ? 600 : 300;
+                              const printStroke = printPreview ? 3 : 0.5;
+                              const printWeight = printPreview ? 800 : 300;
+                              const printOpacity = printPreview ? 0.8 : 0.4;
 
                               return (
                                 <svg width="100%" viewBox={`0 -70 ${w} 130`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
@@ -5452,14 +5461,14 @@
                                     <path id="textArc1" d={arc(line1Radius)} fill="none" />
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                                   <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
                                   <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                                 </svg>
                               );
                             }
@@ -5479,19 +5488,20 @@
                             const textRadius = 255 + X + descHeight;             // text: gap X from decor to char bottoms
                             const upperDecorRadius = textRadius + X + capHeight; // top decor: gap X from char tops
 
-                            const printStroke = printPreview ? 1.5 : 0.5;
-                            const printWeight = printPreview ? 600 : 300;
+                            const printStroke = printPreview ? 3 : 0.5;
+                            const printWeight = printPreview ? 800 : 300;
+                            const printOpacity = printPreview ? 0.8 : 0.4;
 
                             return (
                               <svg width="100%" viewBox={`0 -60 ${w} 110`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
                                 <defs>
                                   <path id="textArc" d={arc(textRadius)} fill="none" />
                                 </defs>
-                                <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                                 <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                   <textPath href="#textArc" startOffset="50%">{phrase}</textPath>
                                 </text>
-                                <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity={printOpacity} />
                               </svg>
                             );
                           })()}
