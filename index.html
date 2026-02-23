@@ -4060,7 +4060,7 @@
       };
 
       return (
-        <svg id={svgId} width={size} height={size} viewBox={viewBox} style={{background: '#fafaf9', borderRadius: getSize(SIZE_RATIOS.radiusMd)}}>
+        <svg id={svgId} width={size} height={size} viewBox={viewBox} overflow="visible" style={{background: '#fafaf9', borderRadius: getSize(SIZE_RATIOS.radiusMd), overflow: 'visible'}}>
           {showHeatMap && heatAnalysis && (
             <g>
               {heatAnalysis.cells.filter(c => c.count > 0).map((cell, i) => (
