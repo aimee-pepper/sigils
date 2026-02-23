@@ -1164,9 +1164,34 @@
         order: 3;
       }
 
+      /* Mobile text input - always visible at top */
+      .mobile-input-section {
+        display: block;
+        order: 1;
+        width: 100%;
+        padding: var(--sp-xs);
+        background: white;
+        border-bottom: var(--sp-px) solid #e4e4e7;
+      }
+
+      .dark-mode .mobile-input-section {
+        background: #262626;
+        border-color: #3f3f46;
+      }
+
+      .mobile-input-section input[type="text"] {
+        width: 100%;
+        font-size: var(--font-primary);
+      }
+
+      .mobile-input-section .info {
+        margin-top: var(--sp-4xs);
+        margin-bottom: 0;
+      }
+
       .mobile-controls-toggle {
         display: flex;
-        order: 1;
+        order: 2;
         align-items: center;
         justify-content: center;
         gap: var(--sp-4xs);
@@ -1188,6 +1213,11 @@
         background: #27272a;
         border-color: #3f3f46;
         color: #a1a1aa;
+      }
+
+      /* Hide the input section inside left-panel on mobile (it's in mobile-input-section) */
+      .left-panel .section:first-of-type {
+        display: none;
       }
 
       .tabs-bar {
@@ -1224,7 +1254,27 @@
         padding: var(--sp-3xs);
       }
 
-      .detail-panel {
+      /* Showcase panel - collapsed state on mobile */
+      .detail-panel.collapsed {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-width: unset;
+        padding: var(--sp-xs) var(--sp-sm);
+        border-left: none;
+        border-top: var(--sp-px) solid #e4e4e7;
+        order: 10;
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .detail-panel.collapsed .detail-panel-collapsed-label {
+        writing-mode: horizontal-tb;
+        text-orientation: mixed;
+      }
+
+      /* Showcase panel - expanded state on mobile */
+      .detail-panel:not(.collapsed) {
         position: fixed;
         top: 0;
         left: 0;
@@ -1303,8 +1353,11 @@
       }
     }
 
-    /* Hide mobile toggle on desktop */
+    /* Hide mobile elements on desktop */
     .mobile-controls-toggle {
+      display: none;
+    }
+    .mobile-input-section {
       display: none;
     }
   </style>
@@ -4611,6 +4664,27 @@
           </div>
 
           <div className="app-layout">
+            {/* Mobile input section - always visible on mobile */}
+            <div className="mobile-input-section">
+              {activeTab === 0 ? (
+                <input
+                  type="text"
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder="Enter your phrase..."
+                />
+              ) : (
+                <div className="info" style={{marginTop: 0}}>
+                  "{currentText}"
+                </div>
+              )}
+              {processed && (
+                <div className="info">
+                  <strong>{processed.unique.length}</strong> letters: {processed.unique.join('')}
+                </div>
+              )}
+            </div>
+
             {/* Mobile controls toggle */}
             <button
               className="mobile-controls-toggle"
