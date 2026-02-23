@@ -941,6 +941,26 @@
       border-color: #71717a;
       color: #e4e4e7;
     }
+    .detail-panel-btn.active {
+      background: #3f3f46;
+      color: white;
+      border-color: #3f3f46;
+    }
+    .detail-panel.showcase-dark .detail-panel-btn.active {
+      background: #e4e4e7;
+      color: #1a1a1a;
+      border-color: #e4e4e7;
+    }
+    .detail-panel-btn.print-btn {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+      font-weight: 500;
+    }
+    .detail-panel-btn.print-btn:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
     .detail-panel-empty {
       display: flex;
       align-items: center;
@@ -3875,7 +3895,7 @@
       };
     };
 
-    const SigilSVG = ({ sigil, size, showGuides = false, showHeatMap = false, showDots = true, showLabels = false, heatAnalysis = null, generatedSize = null, svgId = null, darkMode = false, showCenterDot = true, markerScale = 1, thinStroke = false }) => {
+    const SigilSVG = ({ sigil, size, showGuides = false, showHeatMap = false, showDots = true, showLabels = false, heatAnalysis = null, generatedSize = null, svgId = null, darkMode = false, showCenterDot = true, markerScale = 1, thinStroke = false, printMode = false }) => {
       // Safety check - if sigil is missing required data, render empty
       if (!sigil || !sigil.paths) {
         return <svg id={svgId} width={size} height={size} style={{background: '#fafaf9', borderRadius: getSize(SIZE_RATIOS.radiusMd)}} />;
@@ -3883,8 +3903,10 @@
 
       const color = darkMode ? "#ffffff" : "#3f3f46";
       const bgColor = darkMode ? "#1a1a1a" : "#fafaf9";
-      // Stroke width multiplier - reduced for thin stroke mode
-      const strokeMult = thinStroke ? 0.5 : 1;
+      // Stroke width multiplier - thicker for print, reduced for thin stroke mode
+      const strokeMult = printMode ? 2.5 : (thinStroke ? 0.5 : 1);
+      // Marker scale for print mode - larger terminals
+      const effectiveMarkerScale = printMode ? markerScale * 1.8 : markerScale;
 
       // For chained layouts, use tight contentBounds viewBox to reduce whitespace
       const isChained = sigil.layoutMode === 'chained' || sigil.layoutMode === LayoutMode.CHAINED;
@@ -3996,23 +4018,23 @@
           ))}
 
           {(sigil.intersections || []).map((int, i) => (
-            <circle key={`int-${i}`} cx={int.x} cy={int.y} r={4 * strokeScale * markerScale} fill={bgColor} stroke={color} strokeWidth={1.5 * strokeScale * markerScale * strokeMult} />
+            <circle key={`int-${i}`} cx={int.x} cy={int.y} r={4 * strokeScale * effectiveMarkerScale} fill={bgColor} stroke={color} strokeWidth={1.5 * strokeScale * effectiveMarkerScale * strokeMult} />
           ))}
 
           {/* Acute vertex dots - always shown (structural, mark sharp angles) */}
           {(sigil.acuteVertices || []).map((v, i) => (
-            <circle key={`acute-${i}`} cx={v.x} cy={v.y} r={3 * strokeScale * markerScale} fill={color} />
+            <circle key={`acute-${i}`} cx={v.x} cy={v.y} r={3 * strokeScale * effectiveMarkerScale} fill={color} />
           ))}
 
           {/* Arc decorative dots - controlled by showDots toggle */}
           {showDots && (sigil.arcDots || []).map((d, i) => (
-            <circle key={`arcdot-${i}`} cx={d.x} cy={d.y} r={2 * strokeScale * markerScale} fill={color} />
+            <circle key={`arcdot-${i}`} cx={d.x} cy={d.y} r={2 * strokeScale * effectiveMarkerScale} fill={color} />
           ))}
 
           {(sigil.markers || []).filter(m => m.type === 'start').map((m, i) => (
             <g key={`start-${i}`}>
-              <circle cx={m.x} cy={m.y} r={6 * strokeScale * markerScale} fill={bgColor} stroke={color} strokeWidth={2 * strokeScale * markerScale * strokeMult} />
-              <circle cx={m.x} cy={m.y} r={2 * strokeScale * markerScale} fill={color} />
+              <circle cx={m.x} cy={m.y} r={6 * strokeScale * effectiveMarkerScale} fill={bgColor} stroke={color} strokeWidth={2 * strokeScale * effectiveMarkerScale * strokeMult} />
+              <circle cx={m.x} cy={m.y} r={2 * strokeScale * effectiveMarkerScale} fill={color} />
             </g>
           ))}
 
@@ -4021,7 +4043,7 @@
             // For chained layouts, use endStyle to determine bar vs circle
             // Default to bar for non-chained layouts
             const endStyle = m.endStyle || 'bar';
-            const barLen = (m.barLen || 8) * strokeScale * markerScale;
+            const barLen = (m.barLen || 8) * strokeScale * effectiveMarkerScale;
 
             if (endStyle === 'circle') {
               // Circle end marker (hollow circle, no dot)
@@ -4030,10 +4052,10 @@
                   key={`end-${i}`}
                   cx={m.x}
                   cy={m.y}
-                  r={5 * strokeScale * markerScale}
+                  r={5 * strokeScale * effectiveMarkerScale}
                   fill={bgColor}
                   stroke={color}
-                  strokeWidth={2 * strokeScale * markerScale * strokeMult}
+                  strokeWidth={2 * strokeScale * effectiveMarkerScale * strokeMult}
                 />
               );
             }
@@ -4046,7 +4068,7 @@
                 x2={m.x - Math.cos(perpAngle) * barLen}
                 y2={m.y - Math.sin(perpAngle) * barLen}
                 stroke={color}
-                strokeWidth={3 * strokeScale * markerScale * strokeMult}
+                strokeWidth={3 * strokeScale * effectiveMarkerScale * strokeMult}
                 strokeLinecap="round"
               />
             );
@@ -4059,7 +4081,7 @@
               key={`junction-${i}`}
               cx={dot.x}
               cy={dot.y}
-              r={3 * strokeScale * markerScale}
+              r={3 * strokeScale * effectiveMarkerScale}
               fill={color}
             />
           ))}
@@ -4166,6 +4188,7 @@
       const isMobile = window.innerWidth <= 768;
       const [showcaseExpanded, setShowcaseExpanded] = useState(!isMobile);
       const [showcaseDarkMode, setShowcaseDarkMode] = useState(false);
+      const [printPreview, setPrintPreview] = useState(false);
 
       // Display toggles
       const [showGuides, setShowGuides] = useState(true);
@@ -5195,6 +5218,44 @@
                     <span className="detail-panel-title">Showcase</span>
                     <div className="detail-panel-controls">
                       <button
+                        className={`detail-panel-btn ${printPreview ? 'active' : ''}`}
+                        onClick={() => setPrintPreview(!printPreview)}
+                        title={printPreview ? 'Normal view' : 'Print preview (thick lines)'}
+                      >
+                        {printPreview ? '👁️' : '🖨️'}
+                      </button>
+                      {printPreview && selectedSigil && (
+                        <button
+                          className="detail-panel-btn print-btn"
+                          onClick={() => {
+                            const printWindow = window.open('', '_blank');
+                            const svg = document.getElementById('print-sigil-svg');
+                            if (svg && printWindow) {
+                              const svgData = new XMLSerializer().serializeToString(svg);
+                              printWindow.document.write(`
+                                <html>
+                                  <head>
+                                    <title>Print Sigil</title>
+                                    <style>
+                                      body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                      svg { max-width: 100%; max-height: 100vh; }
+                                      @media print { body { margin: 0; } }
+                                    </style>
+                                  </head>
+                                  <body>${svgData}</body>
+                                </html>
+                              `);
+                              printWindow.document.close();
+                              printWindow.focus();
+                              printWindow.print();
+                            }
+                          }}
+                          title="Print sigil"
+                        >
+                          Print
+                        </button>
+                      )}
+                      <button
                         className="detail-panel-btn"
                         onClick={() => setShowcaseDarkMode(!showcaseDarkMode)}
                         title={effectiveShowcaseDark ? 'Light background' : 'Dark background'}
@@ -5419,7 +5480,9 @@
                             darkMode={effectiveShowcaseDark}
                             showCenterDot={false}
                             markerScale={2.25}
-                            thinStroke={effectiveShowcaseDark}
+                            thinStroke={effectiveShowcaseDark && !printPreview}
+                            printMode={printPreview}
+                            svgId="print-sigil-svg"
                           />
                         </div>
 
