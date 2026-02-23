@@ -1103,6 +1103,27 @@
     .detail-panel.showcase-dark .detail-numbers {
       color: #71717a;
     }
+    /* Print mode styles - thicker everything */
+    .detail-content.print-mode .detail-divider {
+      height: 3px;
+    }
+    .detail-content.print-mode .detail-letters {
+      font-weight: 700;
+      font-size: calc(var(--font-section) * 1.2);
+    }
+    .detail-content.print-mode .detail-numbers {
+      font-weight: 700;
+      font-size: calc(var(--font-tertiary) * 1.2);
+    }
+    .detail-content.print-mode .detail-mini-label {
+      font-weight: 700;
+    }
+    .detail-content.print-mode .detail-phrase-arch text {
+      font-weight: 500;
+    }
+    .detail-content.print-mode .detail-phrase-arch path {
+      stroke-width: 1.5px;
+    }
     .detail-close {
       position: absolute;
       top: var(--sp-3xs);
@@ -5273,7 +5294,7 @@
                   </div>
 
                   {selectedSigil ? (
-                    <div className="detail-content">
+                    <div className={`detail-content ${printPreview ? 'print-mode' : ''}`}>
                       <div className="showcase-scaled-wrapper">
                       <div className="detail-sigil-container" style={{width: BASE_SIZE}}>
                         {/* Arched phrase using SVG */}
@@ -5373,6 +5394,9 @@
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight;   // top text
                               const upperDecorRadius = line1Radius + X + capHeight;
 
+                              const printStroke = printPreview ? 1.5 : 0.5;
+                              const printWeight = printPreview ? 600 : 300;
+
                               return (
                                 <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
                                   <defs>
@@ -5380,17 +5404,17 @@
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                     <path id="textArc3" d={arc(line3Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
-                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc3" startOffset="50%">{line3}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
                                 </svg>
                               );
                             }
@@ -5419,20 +5443,23 @@
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight;  // upper text: gap X/2 between lines
                               const upperDecorRadius = line1Radius + X + capHeight;  // top decor: gap X from char tops
 
+                              const printStroke = printPreview ? 1.5 : 0.5;
+                              const printWeight = printPreview ? 600 : 300;
+
                               return (
                                 <svg width="100%" viewBox={`0 -70 ${w} 130`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
                                   <defs>
                                     <path id="textArc1" d={arc(line1Radius)} fill="none" />
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
                                   </defs>
-                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
-                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc1" startOffset="50%">{line1}</textPath>
                                   </text>
-                                  <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                  <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                     <textPath href="#textArc2" startOffset="50%">{line2}</textPath>
                                   </text>
-                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
+                                  <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
                                 </svg>
                               );
                             }
@@ -5452,16 +5479,19 @@
                             const textRadius = 255 + X + descHeight;             // text: gap X from decor to char bottoms
                             const upperDecorRadius = textRadius + X + capHeight; // top decor: gap X from char tops
 
+                            const printStroke = printPreview ? 1.5 : 0.5;
+                            const printWeight = printPreview ? 600 : 300;
+
                             return (
                               <svg width="100%" viewBox={`0 -60 ${w} 110`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
                                 <defs>
                                   <path id="textArc" d={arc(textRadius)} fill="none" />
                                 </defs>
-                                <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
-                                <text fontSize={fontSize} textAnchor="middle" letterSpacing={letterSpacing}>
+                                <path d={arc(upperDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
+                                <text fontSize={fontSize} fontWeight={printWeight} textAnchor="middle" letterSpacing={letterSpacing}>
                                   <textPath href="#textArc" startOffset="50%">{phrase}</textPath>
                                 </text>
-                                <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.4" />
+                                <path d={arc(lowerDecorRadius)} fill="none" stroke="currentColor" strokeWidth={printStroke} opacity="0.4" />
                               </svg>
                             );
                           })()}
@@ -5503,7 +5533,8 @@
                                 showLabels={false}
                                 showHeatMap={false}
                                 darkMode={effectiveShowcaseDark}
-                                thinStroke={effectiveShowcaseDark}
+                                thinStroke={effectiveShowcaseDark && !printPreview}
+                                printMode={printPreview}
                               />
                               <span className="detail-mini-label">Guides</span>
                             </div>
@@ -5517,7 +5548,8 @@
                                 showLabels={true}
                                 showHeatMap={false}
                                 darkMode={effectiveShowcaseDark}
-                                thinStroke={effectiveShowcaseDark}
+                                thinStroke={effectiveShowcaseDark && !printPreview}
+                                printMode={printPreview}
                               />
                               <span className="detail-mini-label">Labels</span>
                             </div>
@@ -5532,7 +5564,8 @@
                                 showHeatMap={true}
                                 heatAnalysis={selectedSigil.heatAnalysis}
                                 darkMode={effectiveShowcaseDark}
-                                thinStroke={effectiveShowcaseDark}
+                                thinStroke={effectiveShowcaseDark && !printPreview}
+                                printMode={printPreview}
                               />
                               <span className="detail-mini-label">Heat</span>
                             </div>
