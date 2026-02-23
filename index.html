@@ -1134,32 +1134,100 @@
       color: #e4e4e7;
     }
 
+    /* Hide mobile elements on desktop */
+    .mobile-header {
+      display: none;
+    }
+    .mobile-input-section {
+      display: none;
+    }
+    .mobile-floating-buttons {
+      display: none;
+    }
+    .mobile-controls-toggle {
+      display: none;
+    }
+
     /* Mobile Responsive Styles */
     @media (max-width: 768px) {
       :root {
         --base: min(440px, 92vw);
+        --mobile-header-h: 44px;
+        --mobile-input-h: 70px;
+        --mobile-footer-h: 50px;
       }
 
       body {
-        padding-bottom: 60px; /* Space for floating buttons */
+        padding-top: calc(var(--mobile-header-h) + var(--mobile-input-h));
+        padding-bottom: var(--mobile-footer-h);
       }
 
-      .app-layout {
-        flex-direction: column;
-      }
-
-      /* Fixed input bar at top */
-      .mobile-input-section {
-        display: block;
+      /* Fixed header at very top */
+      .mobile-header {
+        display: flex;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        z-index: 90;
-        padding: var(--sp-xs);
+        height: var(--mobile-header-h);
+        z-index: 92;
         background: white;
-        border-bottom: var(--sp-px) solid #e4e4e7;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-bottom: 1px solid #e4e4e7;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+      }
+
+      .dark-mode .mobile-header {
+        background: #1f1f1f;
+        border-color: #3f3f46;
+      }
+
+      .mobile-header-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #3f3f46;
+      }
+
+      .dark-mode .mobile-header-title {
+        color: #e4e4e7;
+      }
+
+      .mobile-header-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        padding: 8px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .mobile-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Fixed input below header */
+      .mobile-input-section {
+        display: block;
+        position: fixed;
+        top: var(--mobile-header-h);
+        left: 0;
+        right: 0;
+        z-index: 91;
+        padding: 10px 12px;
+        background: white;
+        border-bottom: 1px solid #e4e4e7;
       }
 
       .dark-mode .mobile-input-section {
@@ -1169,44 +1237,89 @@
 
       .mobile-input-section input[type="text"] {
         width: 100%;
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        padding: 10px 12px;
+        border: 1px solid #d4d4d8;
+        border-radius: 8px;
+        background: #fafaf9;
       }
 
-      .mobile-input-section .info {
-        margin-top: var(--sp-4xs);
-        margin-bottom: 0;
-        font-size: var(--font-tiny);
+      .dark-mode .mobile-input-section input[type="text"] {
+        background: #3f3f46;
+        border-color: #52525b;
+        color: #e4e4e7;
       }
 
-      /* Tabs bar below fixed input */
-      .tabs-bar {
-        margin-top: 70px; /* Below fixed input */
-        padding: 0 var(--sp-xs);
-        flex-wrap: wrap;
+      .mobile-input-info {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #71717a;
+        font-family: monospace;
       }
 
-      .tabs-bar-left {
-        order: 2;
-        width: 100%;
+      /* Floating buttons at bottom */
+      .mobile-floating-buttons {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--mobile-footer-h);
+        z-index: 92;
+        background: white;
+        border-top: 1px solid #e4e4e7;
+      }
+
+      .dark-mode .mobile-floating-buttons {
+        background: #1f1f1f;
+        border-color: #3f3f46;
+      }
+
+      .mobile-floating-btn {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        color: #52525b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
         justify-content: center;
-        border-top: var(--sp-px) solid #e4e4e7;
-        padding-top: var(--sp-5xs);
+        gap: 6px;
       }
 
-      .tabs-bar-right {
-        order: 1;
-        width: 100%;
-        justify-content: space-between;
-        margin-left: 0;
-        padding: var(--sp-5xs) 0;
+      .mobile-floating-btn:first-child {
+        border-right: 1px solid #e4e4e7;
       }
 
-      .tab {
-        padding: var(--sp-3xs) var(--sp-xs);
-        font-size: var(--font-secondary);
+      .dark-mode .mobile-floating-btn:first-child {
+        border-color: #3f3f46;
       }
 
-      /* Hide left panel completely on mobile - use floating button instead */
+      .mobile-floating-btn.active {
+        background: #f5f5f4;
+        color: #18181b;
+      }
+
+      .dark-mode .mobile-floating-btn {
+        color: #a1a1aa;
+      }
+
+      .dark-mode .mobile-floating-btn.active {
+        background: #3f3f46;
+        color: #e4e4e7;
+      }
+
+      /* Hide tabs bar on mobile */
+      .tabs-bar {
+        display: none;
+      }
+
+      .app-layout {
+        flex-direction: column;
+      }
+
+      /* Hide left panel on mobile - use floating panel */
       .left-panel {
         display: none;
       }
@@ -1215,18 +1328,17 @@
       .left-panel.mobile-open {
         display: block;
         position: fixed;
-        top: 70px;
+        top: calc(var(--mobile-header-h) + var(--mobile-input-h));
         left: 0;
         right: 0;
-        bottom: 60px;
+        bottom: var(--mobile-footer-h);
         width: 100%;
         min-width: unset;
-        max-height: none;
-        z-index: 95;
+        z-index: 90;
         background: white;
         border: none;
         overflow-y: auto;
-        padding: var(--sp-sm);
+        padding: 12px;
       }
 
       .dark-mode .left-panel.mobile-open {
@@ -1237,14 +1349,12 @@
         display: none;
       }
 
-      /* Hide duplicate input in left panel */
       .left-panel .section:first-of-type {
         display: none;
       }
 
       .right-panel {
-        padding: var(--sp-xs);
-        padding-bottom: 80px;
+        padding: 12px;
       }
 
       .results-grid {
@@ -1252,74 +1362,15 @@
       }
 
       .sigil-card {
-        padding: var(--sp-3xs);
+        padding: 8px;
       }
 
-      /* Floating buttons at bottom */
-      .mobile-floating-buttons {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 91;
-        background: white;
-        border-top: var(--sp-px) solid #e4e4e7;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-      }
-
-      .dark-mode .mobile-floating-buttons {
-        background: #262626;
-        border-color: #3f3f46;
-      }
-
-      .mobile-floating-btn {
-        flex: 1;
-        padding: var(--sp-sm) var(--sp-xs);
-        border: none;
-        background: transparent;
-        font-size: var(--font-secondary);
-        color: #52525b;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--sp-4xs);
-      }
-
-      .mobile-floating-btn:first-child {
-        border-right: var(--sp-px) solid #e4e4e7;
-      }
-
-      .dark-mode .mobile-floating-btn:first-child {
-        border-color: #3f3f46;
-      }
-
-      .mobile-floating-btn:hover,
-      .mobile-floating-btn.active {
-        background: #f5f5f4;
-      }
-
-      .dark-mode .mobile-floating-btn {
-        color: #a1a1aa;
-      }
-
-      .dark-mode .mobile-floating-btn:hover,
-      .dark-mode .mobile-floating-btn.active {
-        background: #3f3f46;
-      }
-
-      /* Hide old mobile toggle */
-      .mobile-controls-toggle {
-        display: none;
-      }
-
-      /* Showcase panel - collapsed: hide completely (use floating button) */
+      /* Showcase panel - collapsed: hide (use button) */
       .detail-panel.collapsed {
         display: none;
       }
 
-      /* Showcase panel - expanded state on mobile */
+      /* Showcase panel - expanded */
       .detail-panel:not(.collapsed) {
         position: fixed;
         top: 0;
@@ -1336,73 +1387,63 @@
       }
 
       .detail-content {
-        padding: var(--sp-sm);
-        padding-top: var(--sp-xl);
+        padding: 16px;
+        padding-top: 50px;
       }
 
       .detail-close {
         position: fixed;
-        top: var(--sp-xs);
-        right: var(--sp-xs);
-        background: rgba(255,255,255,0.9);
-        border-radius: var(--radius-sm);
-        padding: var(--sp-3xs) var(--sp-xs);
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.95);
+        border-radius: 6px;
+        padding: 8px 14px;
         z-index: 101;
+        font-size: 16px;
       }
 
       .dark-mode .detail-close,
       .detail-panel.showcase-dark .detail-close {
-        background: rgba(39, 39, 42, 0.9);
+        background: rgba(39, 39, 42, 0.95);
         color: #e4e4e7;
       }
 
       .showcase-scaled-wrapper {
-        transform: scale(0.6) translateY(-10%);
+        transform: scale(0.55) translateY(-15%);
       }
 
       .info {
-        font-size: var(--font-tiny);
+        font-size: 10px;
         word-break: break-all;
       }
 
       .toggle-group {
-        gap: var(--sp-4xs);
+        gap: 4px;
       }
 
       .toggle-btn {
-        padding: var(--sp-4xs) var(--sp-4xs);
-        font-size: var(--font-tiny);
+        padding: 4px 6px;
+        font-size: 11px;
       }
 
       .section-title {
-        font-size: var(--font-tiny);
-      }
-
-      .examples-toggle {
-        font-size: var(--font-secondary);
-      }
-
-      .error-log-panel {
-        width: calc(100vw - var(--sp-md));
-        max-width: none;
-        right: var(--sp-xs);
+        font-size: 10px;
       }
 
       .filter-btn {
-        padding: var(--sp-4xs) var(--sp-3xs);
-        font-size: var(--font-tiny);
+        padding: 4px 8px;
+        font-size: 11px;
       }
-    }
 
-    /* Hide mobile elements on desktop */
-    .mobile-controls-toggle {
-      display: none;
-    }
-    .mobile-input-section {
-      display: none;
-    }
-    .mobile-floating-buttons {
-      display: none;
+      .error-log-panel {
+        position: fixed;
+        top: var(--mobile-header-h);
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: 60vh;
+        z-index: 95;
+      }
     }
   </style>
 </head>
@@ -4707,50 +4748,61 @@
             </div>
           </div>
 
+          {/* Mobile fixed header - dark mode toggle and log */}
+          <div className="mobile-header">
+            <button
+              className="mobile-header-btn"
+              onClick={() => setDarkMode(!darkMode)}
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+            <span className="mobile-header-title">Sigil Generator</span>
+            <button
+              className={`mobile-header-btn ${errorLog.length > 0 ? 'has-badge' : ''}`}
+              onClick={() => setErrorLogExpanded(!errorLogExpanded)}
+            >
+              📋 {errorLog.length > 0 && <span className="mobile-badge">{errorLog.length}</span>}
+            </button>
+          </div>
+
+          {/* Mobile input section - fixed below header */}
+          <div className="mobile-input-section">
+            <input
+              type="text"
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              placeholder="Enter your phrase..."
+            />
+            {processed && (
+              <div className="mobile-input-info">
+                <strong>{processed.unique.length}</strong> unique: {processed.unique.join('')}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile floating buttons - fixed at bottom */}
+          <div className="mobile-floating-buttons">
+            <button
+              className={`mobile-floating-btn ${mobileControlsOpen ? 'active' : ''}`}
+              onClick={() => {
+                setMobileControlsOpen(!mobileControlsOpen);
+                setShowcaseExpanded(false);
+              }}
+            >
+              ⚙️ Controls
+            </button>
+            <button
+              className={`mobile-floating-btn ${showcaseExpanded ? 'active' : ''}`}
+              onClick={() => {
+                setShowcaseExpanded(true);
+                setMobileControlsOpen(false);
+              }}
+            >
+              ✨ Showcase
+            </button>
+          </div>
+
           <div className="app-layout">
-            {/* Mobile input section - fixed at top on mobile */}
-            <div className="mobile-input-section">
-              {activeTab === 0 ? (
-                <input
-                  type="text"
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  placeholder="Enter your phrase..."
-                />
-              ) : (
-                <div className="info" style={{marginTop: 0}}>
-                  "{currentText}"
-                </div>
-              )}
-              {processed && (
-                <div className="info">
-                  <strong>{processed.unique.length}</strong> letters: {processed.unique.join('')}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile floating buttons - fixed at bottom */}
-            <div className="mobile-floating-buttons">
-              <button
-                className={`mobile-floating-btn ${mobileControlsOpen ? 'active' : ''}`}
-                onClick={() => {
-                  setMobileControlsOpen(!mobileControlsOpen);
-                  if (!showcaseExpanded) setShowcaseExpanded(false);
-                }}
-              >
-                ⚙️ Controls
-              </button>
-              <button
-                className="mobile-floating-btn"
-                onClick={() => {
-                  setShowcaseExpanded(true);
-                  setMobileControlsOpen(false);
-                }}
-              >
-                ✨ Showcase
-              </button>
-            </div>
-
             <div className={`left-panel ${mobileControlsOpen ? 'mobile-open' : ''}`}>
               <h1>Sigil Generator</h1>
 
