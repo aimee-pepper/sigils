@@ -3976,8 +3976,8 @@
 
       const color = darkMode ? "#ffffff" : "#3f3f46";
       const bgColor = darkMode ? "#1a1a1a" : "#fafaf9";
-      // Stroke width multiplier - thicker for print, reduced for thin stroke mode
-      const strokeMult = printMode ? 3.5 : (thinStroke ? 0.5 : 1);
+      // Stroke width multiplier - thicker for print (2x decor lines), reduced for thin stroke mode
+      const strokeMult = printMode ? 6 : (thinStroke ? 0.5 : 1);
       // Marker scale for print mode - larger terminals and dots
       const effectiveMarkerScale = printMode ? markerScale * 2.2 : markerScale;
 
