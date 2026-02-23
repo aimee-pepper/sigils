@@ -3977,9 +3977,9 @@
       const color = darkMode ? "#ffffff" : "#3f3f46";
       const bgColor = darkMode ? "#1a1a1a" : "#fafaf9";
       // Stroke width multiplier - thicker for print, reduced for thin stroke mode
-      const strokeMult = printMode ? 2.5 : (thinStroke ? 0.5 : 1);
-      // Marker scale for print mode - larger terminals
-      const effectiveMarkerScale = printMode ? markerScale * 1.8 : markerScale;
+      const strokeMult = printMode ? 3.5 : (thinStroke ? 0.5 : 1);
+      // Marker scale for print mode - larger terminals and dots
+      const effectiveMarkerScale = printMode ? markerScale * 2.2 : markerScale;
 
       // For chained layouts, use tight contentBounds viewBox to reduce whitespace
       const isChained = sigil.layoutMode === 'chained' || sigil.layoutMode === LayoutMode.CHAINED;
