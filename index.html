@@ -4019,8 +4019,9 @@
       // Selected sigil for detail panel
       const [selectedSigil, setSelectedSigil] = useState(null);
 
-      // Showcase panel state
-      const [showcaseExpanded, setShowcaseExpanded] = useState(true);
+      // Showcase panel state - start collapsed on mobile
+      const isMobile = window.innerWidth <= 768;
+      const [showcaseExpanded, setShowcaseExpanded] = useState(!isMobile);
       const [showcaseDarkMode, setShowcaseDarkMode] = useState(false);
 
       // Display toggles
