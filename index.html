@@ -506,7 +506,11 @@
       background: rgba(0,0,0,0.1);
       color: #71717a;
     }
-    .sigil-card:hover .fav-btn {
+    .sigil-card:hover .fav-btn,
+    .sigil-card:hover .showcase-btn {
+      opacity: 1 !important;
+    }
+    .showcase-btn.active {
       opacity: 1 !important;
     }
     .favorites-tab {
@@ -1139,7 +1143,7 @@
     }
     .detail-content.print-mode .detail-mini-row {
       overflow: visible;
-      padding-top: 8px;
+      padding-top: 16px;
     }
     .detail-content.print-mode .detail-mini-card {
       overflow: visible;
@@ -5221,10 +5225,22 @@
                               {stackCount > 1 && <span className="stack-count">{stackCount}</span>}
                               <div
                                 className={`sigil-card ${item.isPerfect ? 'perfect' : ''} ${isFav ? 'favorite' : ''}`}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedSigil({...item, phrase: currentText}); }}
-                                title="Click to view details"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedSigil({...item, phrase: currentText}); setShowcaseExpanded(true); }}
+                                title="Click to view in showcase"
                               >
                                 <button className="hide-btn" onClick={(e) => toggleHidden(item, e)} title="Hide this sigil">Hide</button>
+                                <button
+                                  className={`showcase-btn ${selectedSigil && selectedSigil.id === item.id ? 'active' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); setSelectedSigil({...item, phrase: currentText}); setShowcaseExpanded(true); }}
+                                  title="View in showcase"
+                                  style={{
+                                    position: 'absolute', top: '4px', right: '28px',
+                                    background: 'none', border: 'none', cursor: 'pointer',
+                                    fontSize: '16px', opacity: selectedSigil && selectedSigil.id === item.id ? 1 : 0, transition: 'opacity 0.2s'
+                                  }}
+                                >
+                                  {selectedSigil && selectedSigil.id === item.id ? '⭐' : '☆'}
+                                </button>
                                 <button
                                   className="fav-btn"
                                   onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }}
