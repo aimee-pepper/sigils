@@ -3968,7 +3968,7 @@
       };
     };
 
-    const SigilSVG = ({ sigil, size, showGuides = false, showHeatMap = false, showDots = true, showLabels = false, heatAnalysis = null, generatedSize = null, svgId = null, darkMode = false, showCenterDot = true, markerScale = 1, thinStroke = false, printMode = false }) => {
+    const SigilSVG = ({ sigil, size, showGuides = false, showHeatMap = false, showDots = true, showLabels = false, heatAnalysis = null, generatedSize = null, svgId = null, darkMode = false, showCenterDot = true, markerScale = 1, thinStroke = false, printMode = false, pathStrokeMult = 1 }) => {
       // Safety check - if sigil is missing required data, render empty
       if (!sigil || !sigil.paths) {
         return <svg id={svgId} width={size} height={size} style={{background: '#fafaf9', borderRadius: getSize(SIZE_RATIOS.radiusMd)}} />;
@@ -3978,6 +3978,8 @@
       const bgColor = darkMode ? "#1a1a1a" : "#fafaf9";
       // Stroke width multiplier - thicker for print, reduced for thin stroke mode
       const strokeMult = printMode ? 3.5 : (thinStroke ? 0.5 : 1);
+      // Additional multiplier for path strokes only (main sigil can be thicker)
+      const effectivePathStrokeMult = strokeMult * pathStrokeMult;
       // Marker scale for print mode - larger terminals and dots
       const effectiveMarkerScale = printMode ? markerScale * 2.2 : markerScale;
 
@@ -4087,7 +4089,7 @@
           {showCenterDot && <circle cx={sigil.cx} cy={sigil.cy} r={2} fill={color} opacity={0.15} />}
 
           {(sigil.paths || []).map((p, i) => (
-            <path key={i} d={p.d} fill="none" stroke={color} strokeWidth={2 * strokeScale * strokeMult} strokeLinecap="round" />
+            <path key={i} d={p.d} fill="none" stroke={color} strokeWidth={2 * strokeScale * effectivePathStrokeMult} strokeLinecap="round" />
           ))}
 
           {(sigil.intersections || []).map((int, i) => (
@@ -5590,6 +5592,7 @@
                             markerScale={2.25}
                             thinStroke={effectiveShowcaseDark && !printPreview}
                             printMode={printPreview}
+                            pathStrokeMult={printPreview ? 2 : 1}
                             svgId="print-sigil-svg"
                           />
                         </div>
