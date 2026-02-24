@@ -5464,11 +5464,11 @@
 
                               // CALCULATED RADII for 3 lines (with print mode spacing)
                               const ps = printPreview ? 1 : 0; // print spacing multiplier
-                              const lowerDecorRadius = 255 + (5 * ps);
-                              const line3Radius = 255 + X + descHeight + (10 * ps);               // bottom text
-                              const line2Radius = line3Radius + (X/2) + capHeight + descHeight + (5 * ps);   // middle text
-                              const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (5 * ps);   // top text
-                              const upperDecorRadius = line1Radius + X + capHeight + (8 * ps);
+                              const lowerDecorRadius = 255 + (25 * ps);
+                              const line3Radius = 255 + X + descHeight + (50 * ps);               // bottom text
+                              const line2Radius = line3Radius + (X/2) + capHeight + descHeight + (25 * ps);   // middle text
+                              const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (25 * ps);   // top text
+                              const upperDecorRadius = line1Radius + X + capHeight + (40 * ps);
 
                               const decorStroke = printPreview ? 6 : 0.5;
                               const printWeight = printPreview ? 900 : 300;
@@ -5519,10 +5519,10 @@
                               // CALCULATED RADII - spacing measured at arc CENTER (with print mode spacing)
                               // At center: y = 180 - radius, so radius difference = y difference
                               const ps = printPreview ? 1 : 0; // print spacing multiplier
-                              const lowerDecorRadius = 255 + (5 * ps);               // bottom decor
-                              const line2Radius = 255 + X + descHeight + (10 * ps);  // lower text: gap X from decor to char bottoms
-                              const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (5 * ps);  // upper text
-                              const upperDecorRadius = line1Radius + X + capHeight + (8 * ps);  // top decor
+                              const lowerDecorRadius = 255 + (25 * ps);               // bottom decor
+                              const line2Radius = 255 + X + descHeight + (50 * ps);  // lower text: gap X from decor to char bottoms
+                              const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (25 * ps);  // upper text
+                              const upperDecorRadius = line1Radius + X + capHeight + (40 * ps);  // top decor
 
                               const decorStroke = printPreview ? 6 : 0.5;
                               const printWeight = printPreview ? 900 : 300;
@@ -5560,9 +5560,9 @@
 
                             // CALCULATED RADII - spacing measured at arc CENTER (with print mode spacing)
                             const ps = printPreview ? 1 : 0; // print spacing multiplier
-                            const lowerDecorRadius = 255 + (5 * ps);             // bottom decor
-                            const textRadius = 255 + X + descHeight + (10 * ps); // text: gap X from decor to char bottoms
-                            const upperDecorRadius = textRadius + X + capHeight + (8 * ps); // top decor
+                            const lowerDecorRadius = 255 + (25 * ps);             // bottom decor
+                            const textRadius = 255 + X + descHeight + (50 * ps); // text: gap X from decor to char bottoms
+                            const upperDecorRadius = textRadius + X + capHeight + (40 * ps); // top decor
 
                             const decorStroke = printPreview ? 6 : 0.5;
                             const printWeight = printPreview ? 900 : 300;
