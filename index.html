@@ -1038,6 +1038,10 @@
     .detail-main-sigil {
       margin-top: calc(var(--sp-md) * -1);
     }
+    .three-line-header .detail-main-sigil {
+      transform: scale(0.85);
+      margin-top: calc(var(--sp-md) * -2);
+    }
     .detail-main-sigil svg,
     .detail-mini-card svg {
       background: transparent !important;
@@ -5368,8 +5372,19 @@
                     </div>
                   </div>
 
-                  {selectedSigil ? (
-                    <div className={`detail-content ${printPreview ? 'print-mode' : ''}`}>
+                  {selectedSigil ? (() => {
+                    // Calculate header line count for sizing
+                    const phrase = (selectedSigil.phrase || currentText).toUpperCase();
+                    const words = phrase.split(' ');
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.font = `300 36px Didot, "Bodoni MT", "Playfair Display", "Times New Roman", serif`;
+                    const baseTextWidth = ctx.measureText(phrase).width + (5 * (phrase.length - 1));
+                    const targetWidth = BASE_SIZE * 0.95;
+                    const hasThreeLineHeader = baseTextWidth > targetWidth * 2.0 && words.length >= 3;
+
+                    return (
+                    <div className={`detail-content ${printPreview ? 'print-mode' : ''} ${hasThreeLineHeader ? 'three-line-header' : ''}`}>
                       <div className="showcase-scaled-wrapper">
                       <div className="detail-sigil-container" style={{width: BASE_SIZE}}>
                         {/* Arched phrase using SVG */}
@@ -5678,7 +5693,7 @@
                       </div>
                       </div>
                     </div>
-                  ) : (
+                  );})() : (
                     <div className="detail-panel-empty">
                       Click a sigil to view details
                     </div>
