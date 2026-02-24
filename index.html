@@ -1552,6 +1552,47 @@
         z-index: 95;
       }
     }
+
+    /* Print styles - hide everything except showcase content */
+    @media print {
+      body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
+      .app-container, .sidebar, .main-area, .controls-toggle,
+      .mobile-header, .mobile-floating-buttons, .sigil-grid,
+      .detail-panel-header, .detail-close {
+        display: none !important;
+      }
+      .detail-panel {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        min-width: unset !important;
+        max-width: 100% !important;
+        border: none !important;
+        padding: 10px !important;
+        overflow: visible !important;
+        max-height: none !important;
+      }
+      .detail-content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+      }
+      .showcase-scaled-wrapper {
+        transform: none !important;
+      }
+      .detail-content.print-mode .showcase-scaled-wrapper {
+        transform: scale(0.7) !important;
+      }
+      @page {
+        margin: 0.5cm;
+        size: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -5327,58 +5368,7 @@
                       {printPreview && selectedSigil && (
                         <button
                           className="detail-panel-btn print-btn"
-                          onClick={() => {
-                            const printWindow = window.open('', '_blank');
-                            const showcaseContent = document.querySelector('.detail-content.print-mode');
-                            if (showcaseContent && printWindow) {
-                              // Clone the content
-                              const clone = showcaseContent.cloneNode(true);
-                              // Get all stylesheets
-                              const styles = Array.from(document.styleSheets)
-                                .map(sheet => {
-                                  try {
-                                    return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
-                                  } catch (e) {
-                                    return '';
-                                  }
-                                })
-                                .join('\n');
-                              const bgColor = effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9';
-                              const textColor = effectiveShowcaseDark ? '#ffffff' : '#3f3f46';
-                              printWindow.document.write(`
-                                <html>
-                                  <head>
-                                    <title>Print Sigil - ${selectedSigil.phrase || currentText}</title>
-                                    <style>
-                                      ${styles}
-                                      body {
-                                        margin: 0;
-                                        padding: 20px;
-                                        display: flex;
-                                        justify-content: center;
-                                        align-items: flex-start;
-                                        min-height: 100vh;
-                                        background: ${bgColor};
-                                        color: ${textColor};
-                                      }
-                                      .detail-content {
-                                        width: 100%;
-                                        max-width: 500px;
-                                      }
-                                      @media print {
-                                        body { margin: 0; padding: 10px; }
-                                        @page { margin: 0.5cm; }
-                                      }
-                                    </style>
-                                  </head>
-                                  <body>${clone.outerHTML}</body>
-                                </html>
-                              `);
-                              printWindow.document.close();
-                              printWindow.focus();
-                              setTimeout(() => printWindow.print(), 250);
-                            }
-                          }}
+                          onClick={() => window.print()}
                           title="Print showcase"
                         >
                           Print
