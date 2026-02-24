@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
     :root {
       /* Base unit - everything scales from this */
@@ -1560,22 +1561,44 @@
         padding: 0 !important;
         background: white !important;
       }
-      .app-container, .sidebar, .main-area, .controls-toggle,
-      .mobile-header, .mobile-floating-buttons, .sigil-grid,
-      .detail-panel-header, .detail-close {
+      /* Hide non-showcase elements */
+      .sidebar, .controls-toggle, .tabs-bar,
+      .mobile-header, .mobile-floating-buttons,
+      .detail-panel-header, .detail-close,
+      .sigil-results, .error-log {
         display: none !important;
       }
+      /* Reset containers */
+      .app-container {
+        display: block !important;
+        padding: 0 !important;
+      }
+      .main-area {
+        display: block !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+      .tab-content {
+        display: block !important;
+      }
+      .generate-tab {
+        display: block !important;
+        padding: 0 !important;
+      }
+      /* Style the detail panel for print */
       .detail-panel {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
+        position: static !important;
         width: 100% !important;
         min-width: unset !important;
         max-width: 100% !important;
         border: none !important;
-        padding: 10px !important;
+        padding: 20px !important;
         overflow: visible !important;
         max-height: none !important;
+        display: block !important;
+      }
+      .detail-panel.collapsed {
+        display: none !important;
       }
       .detail-content {
         display: flex !important;
@@ -1586,7 +1609,8 @@
         transform: none !important;
       }
       .detail-content.print-mode .showcase-scaled-wrapper {
-        transform: scale(0.7) !important;
+        transform: scale(0.75) !important;
+        transform-origin: top center !important;
       }
       @page {
         margin: 0.5cm;
@@ -5368,7 +5392,42 @@
                       {printPreview && selectedSigil && (
                         <button
                           className="detail-panel-btn print-btn"
-                          onClick={() => window.print()}
+                          onClick={async () => {
+                            const showcaseContent = document.querySelector('.detail-content.print-mode .showcase-scaled-wrapper');
+                            if (showcaseContent && window.html2canvas) {
+                              try {
+                                const canvas = await window.html2canvas(showcaseContent, {
+                                  backgroundColor: effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9',
+                                  scale: 2,
+                                  useCORS: true,
+                                  logging: false
+                                });
+                                const imgData = canvas.toDataURL('image/png');
+                                const printWindow = window.open('', '_blank');
+                                if (printWindow) {
+                                  printWindow.document.write(`
+                                    <html>
+                                      <head>
+                                        <title>Print Sigil</title>
+                                        <style>
+                                          body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: ${effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9'}; }
+                                          img { max-width: 100%; max-height: 100vh; }
+                                          @media print { body { margin: 0; } @page { margin: 0.5cm; } }
+                                        </style>
+                                      </head>
+                                      <body><img src="${imgData}" /></body>
+                                    </html>
+                                  `);
+                                  printWindow.document.close();
+                                  printWindow.focus();
+                                  setTimeout(() => printWindow.print(), 300);
+                                }
+                              } catch (err) {
+                                console.error('Print error:', err);
+                                alert('Error generating print image');
+                              }
+                            }
+                          }}
                           title="Print showcase"
                         >
                           Print
