@@ -5329,28 +5329,57 @@
                           className="detail-panel-btn print-btn"
                           onClick={() => {
                             const printWindow = window.open('', '_blank');
-                            const svg = document.getElementById('print-sigil-svg');
-                            if (svg && printWindow) {
-                              const svgData = new XMLSerializer().serializeToString(svg);
+                            const showcaseContent = document.querySelector('.detail-content.print-mode');
+                            if (showcaseContent && printWindow) {
+                              // Clone the content
+                              const clone = showcaseContent.cloneNode(true);
+                              // Get all stylesheets
+                              const styles = Array.from(document.styleSheets)
+                                .map(sheet => {
+                                  try {
+                                    return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+                                  } catch (e) {
+                                    return '';
+                                  }
+                                })
+                                .join('\n');
+                              const bgColor = effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9';
+                              const textColor = effectiveShowcaseDark ? '#ffffff' : '#3f3f46';
                               printWindow.document.write(`
                                 <html>
                                   <head>
-                                    <title>Print Sigil</title>
+                                    <title>Print Sigil - ${selectedSigil.phrase || currentText}</title>
                                     <style>
-                                      body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                                      svg { max-width: 100%; max-height: 100vh; }
-                                      @media print { body { margin: 0; } }
+                                      ${styles}
+                                      body {
+                                        margin: 0;
+                                        padding: 20px;
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: flex-start;
+                                        min-height: 100vh;
+                                        background: ${bgColor};
+                                        color: ${textColor};
+                                      }
+                                      .detail-content {
+                                        width: 100%;
+                                        max-width: 500px;
+                                      }
+                                      @media print {
+                                        body { margin: 0; padding: 10px; }
+                                        @page { margin: 0.5cm; }
+                                      }
                                     </style>
                                   </head>
-                                  <body>${svgData}</body>
+                                  <body>${clone.outerHTML}</body>
                                 </html>
                               `);
                               printWindow.document.close();
                               printWindow.focus();
-                              printWindow.print();
+                              setTimeout(() => printWindow.print(), 250);
                             }
                           }}
-                          title="Print sigil"
+                          title="Print showcase"
                         >
                           Print
                         </button>
