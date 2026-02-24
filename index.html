@@ -5393,26 +5393,45 @@
                         <button
                           className="detail-panel-btn print-btn"
                           onClick={async () => {
-                            const showcaseContent = document.querySelector('.detail-content.print-mode .showcase-scaled-wrapper');
-                            if (showcaseContent && window.html2canvas) {
+                            const container = document.querySelector('.detail-sigil-container');
+                            if (container && window.html2canvas) {
                               try {
-                                const canvas = await window.html2canvas(showcaseContent, {
+                                // Temporarily reset transform for accurate capture
+                                const wrapper = document.querySelector('.showcase-scaled-wrapper');
+                                const originalTransform = wrapper ? wrapper.style.transform : '';
+                                if (wrapper) wrapper.style.transform = 'none';
+
+                                const canvas = await window.html2canvas(container, {
                                   backgroundColor: effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9',
                                   scale: 2,
                                   useCORS: true,
-                                  logging: false
+                                  logging: false,
+                                  scrollX: 0,
+                                  scrollY: 0,
+                                  windowWidth: container.scrollWidth,
+                                  windowHeight: container.scrollHeight
                                 });
+
+                                // Restore transform
+                                if (wrapper) wrapper.style.transform = originalTransform;
+
                                 const imgData = canvas.toDataURL('image/png');
                                 const printWindow = window.open('', '_blank');
                                 if (printWindow) {
+                                  const bg = effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9';
                                   printWindow.document.write(`
                                     <html>
                                       <head>
                                         <title>Print Sigil</title>
                                         <style>
-                                          body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: ${effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9'}; }
-                                          img { max-width: 100%; max-height: 100vh; }
-                                          @media print { body { margin: 0; } @page { margin: 0.5cm; } }
+                                          * { margin: 0; padding: 0; box-sizing: border-box; }
+                                          body { background: ${bg}; display: flex; justify-content: center; padding: 20px; }
+                                          img { max-width: 100%; height: auto; }
+                                          @media print {
+                                            body { padding: 0; }
+                                            img { max-height: 95vh; width: auto; }
+                                            @page { margin: 0.3cm; size: auto; }
+                                          }
                                         </style>
                                       </head>
                                       <body><img src="${imgData}" /></body>
