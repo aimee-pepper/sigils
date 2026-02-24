@@ -5393,27 +5393,27 @@
                         <button
                           className="detail-panel-btn print-btn"
                           onClick={async () => {
-                            const container = document.querySelector('.detail-sigil-container');
-                            if (container && window.html2canvas) {
+                            const content = document.querySelector('.detail-content.print-mode');
+                            if (content && window.html2canvas) {
                               try {
-                                // Temporarily reset transform for accurate capture
+                                // Temporarily reset transforms and add padding for capture
                                 const wrapper = document.querySelector('.showcase-scaled-wrapper');
                                 const originalTransform = wrapper ? wrapper.style.transform : '';
+                                const originalPadding = content.style.padding;
                                 if (wrapper) wrapper.style.transform = 'none';
+                                content.style.padding = '40px';
 
-                                const canvas = await window.html2canvas(container, {
+                                const canvas = await window.html2canvas(content, {
                                   backgroundColor: effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9',
-                                  scale: 2,
+                                  scale: 1.5,
                                   useCORS: true,
                                   logging: false,
-                                  scrollX: 0,
-                                  scrollY: 0,
-                                  windowWidth: container.scrollWidth,
-                                  windowHeight: container.scrollHeight
+                                  allowTaint: true
                                 });
 
-                                // Restore transform
+                                // Restore original styles
                                 if (wrapper) wrapper.style.transform = originalTransform;
+                                content.style.padding = originalPadding;
 
                                 const imgData = canvas.toDataURL('image/png');
                                 const printWindow = window.open('', '_blank');
@@ -5425,12 +5425,14 @@
                                         <title>Print Sigil</title>
                                         <style>
                                           * { margin: 0; padding: 0; box-sizing: border-box; }
-                                          body { background: ${bg}; display: flex; justify-content: center; padding: 20px; }
-                                          img { max-width: 100%; height: auto; }
+                                          html, body { height: 100%; background: ${bg}; }
+                                          body { display: flex; justify-content: center; align-items: center; padding: 10px; }
+                                          img { max-width: 100%; max-height: 100%; object-fit: contain; }
                                           @media print {
-                                            body { padding: 0; }
-                                            img { max-height: 95vh; width: auto; }
-                                            @page { margin: 0.3cm; size: auto; }
+                                            html, body { height: auto; }
+                                            body { padding: 5px; }
+                                            img { max-width: 100%; max-height: 100vh; page-break-inside: avoid; }
+                                            @page { margin: 0; size: auto; }
                                           }
                                         </style>
                                       </head>
