@@ -5392,10 +5392,54 @@
                       {printPreview && selectedSigil && (
                         <button
                           className="detail-panel-btn print-btn"
-                          onClick={() => {
-                            // Simple approach: just trigger browser print
-                            // User can use browser's "Save as PDF" or screenshot
-                            window.print();
+                          onClick={async () => {
+                            const panel = document.querySelector('.detail-panel');
+                            if (panel && window.html2canvas) {
+                              try {
+                                // Get the panel's position and extend capture area
+                                const rect = panel.getBoundingClientRect();
+                                const extraTop = 120; // Extra space above for arch overflow
+                                const padding = 40;
+
+                                const canvas = await window.html2canvas(panel, {
+                                  backgroundColor: effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9',
+                                  scale: 2,
+                                  useCORS: true,
+                                  logging: false,
+                                  x: rect.left - padding,
+                                  y: rect.top - extraTop,
+                                  width: rect.width + (padding * 2),
+                                  height: rect.height + extraTop + padding,
+                                  scrollX: -window.scrollX,
+                                  scrollY: -window.scrollY,
+                                  windowWidth: document.documentElement.scrollWidth,
+                                  windowHeight: document.documentElement.scrollHeight
+                                });
+
+                                const imgData = canvas.toDataURL('image/png');
+                                const printWindow = window.open('', '_blank');
+                                if (printWindow) {
+                                  const bg = effectiveShowcaseDark ? '#1a1a1a' : '#fafaf9';
+                                  printWindow.document.write(`
+                                    <html>
+                                      <head><title>Print Sigil</title>
+                                        <style>
+                                          * { margin: 0; padding: 0; }
+                                          body { background: ${bg}; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                          img { max-width: 100%; max-height: 100vh; }
+                                          @media print { @page { margin: 0; } }
+                                        </style>
+                                      </head>
+                                      <body><img src="${imgData}"></body>
+                                    </html>
+                                  `);
+                                  printWindow.document.close();
+                                  setTimeout(() => { printWindow.focus(); printWindow.print(); }, 300);
+                                }
+                              } catch (err) {
+                                console.error('Print error:', err);
+                              }
+                            }
                           }}
                           title="Print showcase"
                         >
