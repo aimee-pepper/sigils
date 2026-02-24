@@ -3982,7 +3982,7 @@
       const color = darkMode ? "#ffffff" : "#3f3f46";
       const bgColor = darkMode ? "#1a1a1a" : "#fafaf9";
       // Stroke width multiplier - thicker for print, reduced for thin stroke mode
-      const strokeMult = printMode ? 3.5 : (thinStroke ? 0.5 : 1);
+      const strokeMult = printMode ? 3.0 : (thinStroke ? 0.5 : 1);
       // Additional multiplier for path strokes only (main sigil can be thicker)
       const effectivePathStrokeMult = strokeMult * pathStrokeMult;
       // Marker scale for print mode - slightly larger terminals and dots
