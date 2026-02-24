@@ -5468,7 +5468,7 @@
                               const line3Radius = 255 + X + descHeight + (10 * ps);               // bottom text
                               const line2Radius = line3Radius + (X/2) + capHeight + descHeight + (5 * ps);   // middle text
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (5 * ps);   // top text
-                              const upperDecorRadius = line1Radius + X + capHeight + (5 * ps);
+                              const upperDecorRadius = line1Radius + X + capHeight + (8 * ps);
 
                               const decorStroke = printPreview ? 6 : 0.5;
                               const printWeight = printPreview ? 900 : 300;
@@ -5522,7 +5522,7 @@
                               const lowerDecorRadius = 255 + (5 * ps);               // bottom decor
                               const line2Radius = 255 + X + descHeight + (10 * ps);  // lower text: gap X from decor to char bottoms
                               const line1Radius = line2Radius + (X/2) + capHeight + descHeight + (5 * ps);  // upper text
-                              const upperDecorRadius = line1Radius + X + capHeight + (5 * ps);  // top decor
+                              const upperDecorRadius = line1Radius + X + capHeight + (8 * ps);  // top decor
 
                               const decorStroke = printPreview ? 6 : 0.5;
                               const printWeight = printPreview ? 900 : 300;
@@ -5562,7 +5562,7 @@
                             const ps = printPreview ? 1 : 0; // print spacing multiplier
                             const lowerDecorRadius = 255 + (5 * ps);             // bottom decor
                             const textRadius = 255 + X + descHeight + (10 * ps); // text: gap X from decor to char bottoms
-                            const upperDecorRadius = textRadius + X + capHeight + (5 * ps); // top decor
+                            const upperDecorRadius = textRadius + X + capHeight + (8 * ps); // top decor
 
                             const decorStroke = printPreview ? 6 : 0.5;
                             const printWeight = printPreview ? 900 : 300;
