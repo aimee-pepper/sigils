@@ -5466,8 +5466,8 @@
                                       <head><title>Print Sigil</title>
                                         <style>
                                           * { margin: 0; padding: 0; }
-                                          body { background: ${bg}; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                                          img { max-width: 100%; max-height: 100vh; }
+                                          body { background: ${bg}; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding-top: 20px; }
+                                          img { max-width: 100%; max-height: calc(100vh - 40px); }
                                           @media print { @page { margin: 0; } }
                                         </style>
                                       </head>
