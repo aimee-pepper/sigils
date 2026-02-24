@@ -281,6 +281,37 @@
     input[type="text"]:focus {
       border-color: #a1a1aa;
     }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper input[type="text"] {
+      padding-right: 30px;
+    }
+    .input-clear-btn {
+      position: absolute;
+      right: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a1a1aa;
+      font-size: 16px;
+      padding: 4px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-clear-btn:hover {
+      color: #71717a;
+    }
+    .dark-mode .input-clear-btn {
+      color: #71717a;
+    }
+    .dark-mode .input-clear-btn:hover {
+      color: #a1a1aa;
+    }
     .toggle-group {
       display: flex;
       flex-wrap: wrap;
@@ -4944,12 +4975,17 @@
 
           {/* Mobile input section - fixed below header */}
           <div className="mobile-input-section">
-            <input
-              type="text"
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-              placeholder="Enter your phrase..."
-            />
+            <div className="input-wrapper">
+              <input
+                type="text"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                placeholder="Enter your phrase..."
+              />
+              {customText && (
+                <button className="input-clear-btn" onClick={() => setCustomText('')} title="Clear">✕</button>
+              )}
+            </div>
             {processed && (
               <div className="mobile-input-info">
                 <strong>{processed.unique.length}</strong> unique: {processed.unique.join('')}
@@ -4985,12 +5021,17 @@
 
               {activeTab === 0 && (
                 <div className="section">
-                  <input
-                    type="text"
-                    value={customText}
-                    onChange={(e) => setCustomText(e.target.value)}
-                    placeholder="Enter your phrase..."
-                  />
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      value={customText}
+                      onChange={(e) => setCustomText(e.target.value)}
+                      placeholder="Enter your phrase..."
+                    />
+                    {customText && (
+                      <button className="input-clear-btn" onClick={() => setCustomText('')} title="Clear">✕</button>
+                    )}
+                  </div>
                 </div>
               )}
 
