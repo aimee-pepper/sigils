@@ -5454,6 +5454,16 @@
                   <div className="detail-panel-header">
                     <span className="detail-panel-title">Showcase</span>
                     <div className="detail-panel-controls">
+                      {/* Header toggle - only in print mode */}
+                      {printPreview && selectedSigil && (
+                        <button
+                          className="detail-panel-btn"
+                          onClick={() => setHideHeader(!hideHeader)}
+                          title={hideHeader ? 'Show header text' : 'Hide header text'}
+                        >
+                          {hideHeader ? '▼' : '▲'}
+                        </button>
+                      )}
                       <button
                         className={`detail-panel-btn ${printPreview ? 'active' : ''}`}
                         onClick={() => { setPrintPreview(!printPreview); if (printPreview) setHideHeader(false); }}
@@ -5565,19 +5575,6 @@
 
                     return (
                     <div id="showcase-content" className={`detail-content ${printPreview ? 'print-mode' : ''} ${hasThreeLineHeader ? 'three-line-header' : ''}`}>
-                      {/* Header toggle button - only in print mode */}
-                      {printPreview && (
-                        <div style={{width: '100%', display: 'flex', justifyContent: 'flex-start', marginBottom: 8}}>
-                          <button
-                            className="header-toggle-btn"
-                            onClick={() => setHideHeader(!hideHeader)}
-                            title={hideHeader ? 'Show header' : 'Hide header'}
-                            style={{position: 'relative', background: 'rgba(128,128,128,0.2)', padding: '4px 12px', borderRadius: 4, cursor: 'pointer', border: 'none', fontSize: 14}}
-                          >
-                            {hideHeader ? '▼ Show Header' : '▲ Hide Header'}
-                          </button>
-                        </div>
-                      )}
                       <div className="showcase-scaled-wrapper">
                       <div className="detail-sigil-container" style={{width: BASE_SIZE}}>
                         {/* Arched phrase using SVG */}
@@ -5686,7 +5683,7 @@
                               const textStroke = printPreview ? 2 : 0;
 
                               return (
-                                <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
+                                <svg width="100%" viewBox={`0 -95 ${w} 155`} style={{marginBottom: -55}} preserveAspectRatio="xMidYMid meet">
                                   <defs>
                                     <path id="textArc1" d={arc(line1Radius)} fill="none" />
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
@@ -5739,7 +5736,7 @@
                               const textStroke = printPreview ? 2 : 0;
 
                               return (
-                                <svg width="100%" viewBox={`0 -70 ${w} 130`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
+                                <svg width="100%" viewBox={`0 -70 ${w} 130`} style={{marginBottom: -55}} preserveAspectRatio="xMidYMid meet">
                                   <defs>
                                     <path id="textArc1" d={arc(line1Radius)} fill="none" />
                                     <path id="textArc2" d={arc(line2Radius)} fill="none" />
@@ -5779,7 +5776,7 @@
                             const textStroke = printPreview ? 2 : 0;
 
                             return (
-                              <svg width="100%" viewBox={`0 -60 ${w} 110`} style={{marginBottom: -85}} preserveAspectRatio="xMidYMid meet">
+                              <svg width="100%" viewBox={`0 -60 ${w} 110`} style={{marginBottom: -55}} preserveAspectRatio="xMidYMid meet">
                                 <defs>
                                   <path id="textArc" d={arc(textRadius)} fill="none" />
                                 </defs>
